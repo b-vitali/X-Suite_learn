@@ -18,7 +18,7 @@ This docker has some minimal tweeking to have a functioning jupyter notebook and
 Most of the requirements for additional tools (MAD-X, Sixtracktools, PyHEADTAIL, ...) are already installed.
 
 ## First working example
-Let's dive right in. The `basic_example.py` has the minimal functioning parts for a simple simulation
+Let's dive right in. The [basic_example.py](basic_example.py) has the minimal functioning parts for a simple simulation
 This code simulates the tracking of particles through a simple lattice using the x-suite library (Xtrack, Xobjects).
 The purpose is to visualize the evolution in phase space (\( x, px \)) of a particle over multiple turns.
 
