@@ -109,3 +109,7 @@ with open('line.json', 'r') as fid:
 line_2 = xt.Line.from_dict(loaded_dct)
 print(loaded_dct['my_additional_info'])
 ```
+
+### Adding elements
+Taking the previous *line*, we can add sextupoles right after the quadrupoles via `line.insert_element()`
+![Line example 1 sextupoles](line_example_1_sextupoles.png)

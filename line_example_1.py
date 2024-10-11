@@ -32,6 +32,8 @@ def plot_beamline(line):
             color = 'green' if element.k1 > 0 else 'red'  # Green for focusing, red for defocusing
         elif isinstance(element, xt.Bend):
             color = 'orange'
+        elif isinstance(element, xt.Sextupole):
+            color = 'purple'  # Purple for sextupoles
         else:
             color = 'black'  # Default color for unknown elements
         
@@ -56,7 +58,8 @@ def plot_beamline(line):
         plt.Line2D([0], [0], color='blue', lw=4, label='Drift'),
         plt.Line2D([0], [0], color='green', lw=4, label='Focusing Quadrupole'),
         plt.Line2D([0], [0], color='red', lw=4, label='Defocusing Quadrupole'),
-        plt.Line2D([0], [0], color='orange', lw=4, label='Bend')
+        plt.Line2D([0], [0], color='orange', lw=4, label='Bend'),
+        plt.Line2D([0], [0], color='purple', lw=4, label='Sextupole')
     ]
     ax.legend(handles=legend_elements, loc='upper right')
 
@@ -304,6 +307,22 @@ print("\nLet's see if there is any info in the dictionary:")
 print(loaded_dct['my_additional_info'])
 
 line_2.get_table().show()
+
+# Define a sextupole
+my_sext = xt.Sextupole(length=0.1, k2=0.1)
+# Insert copies of the defined sextupole downstream of the quadrupoles
+line.discard_tracker() # needed to modify the line structure
+line.insert_element('msf.1', my_sext.copy(), at_s=tab['s', 'mqf.1'] + 0.4)
+line.insert_element('msd.1', my_sext.copy(), at_s=tab['s', 'mqd.1'] + 0.4)
+line.insert_element('msf.2', my_sext.copy(), at_s=tab['s', 'mqf.2'] + 0.4)
+line.insert_element('msd.2', my_sext.copy(), at_s=tab['s', 'mqd.2'] + 0.4)
+
+# Define a rectangular aperture
+my_aper = xt.LimitRect(min_x=-0.02, max_x=0.02, min_y=-0.01, max_y=0.01)
+# Insert the aperture upstream of the first bending magnet
+line.insert_element('aper', my_aper, index='mb1.1')
+
+line.get_table().show()
 
 # Use the function to plot the line
 plot_beamline(line)
