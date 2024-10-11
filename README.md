@@ -36,3 +36,76 @@ Collecting the tracking information at every turn we can follow the evolution in
 ![Phase Space Evolution](basic_example.png)
 
 ## Describe a Line
+Let's now move to [line_example_1.py](line_example_1.py)
+Here we will see how to define, inspect, manipulate, and save/load a beamline model using the `xtrack`
+
+### Defining a Line
+A line can be defined in several ways:
+- **Manually**: By creating individual beamline elements (e.g., `Quadrupole`, `Drift`, `Bend`) and adding them to the line.
+- **Importing from MAD-X**: Using `xt.Line.from_madx_sequence()` to import a line from a MAD-X file.
+- **Using a Sequence**: Defining the line through element positions and properties.
+
+The line define manually in this example is shown here
+```
+pi = np.pi
+lbend = 3
+lquad = 0.3
+elements = {
+    'mqf.1': xt.Quadrupole(length=lquad, k1=0.1),
+    'd1.1':  xt.Drift(length=1),
+    'mb1.1': xt.Bend(length=lbend, k0=pi / 2 / lbend, h=pi / 2 / lbend),
+    'd2.1':  xt.Drift(length=1),
+
+    'mqd.1': xt.Quadrupole(length=lquad, k1=-0.7),
+    'd3.1':  xt.Drift(length=1),
+    'mb2.1': xt.Bend(length=lbend, k0=pi / 2 / lbend, h=pi / 2 / lbend),
+    'd4.1':  xt.Drift(length=1),
+
+    ...
+}
+```
+![Line example 1](line_example_1.png)
+
+### Inspecting a Line
+`xtrack` provides methods to inspect line properties:
+- **Element names**: Retrieve all the names of elements in the line (`line.element_names`).
+- **Element objects**: Retrieve the actual element objects (`line.elements`).
+- **Attributes extraction**: Extract specific attributes (e.g., length) across all elements (`line.attr['length']`).
+- **Table view**: Generate a detailed table with information about each element (`line.get_table()`).
+
+### Controlling Element Properties Using Variables
+Variables and expressions can be used to control properties of elements:
+- **Creating Variables**: Variables (`line.vars`) are created to control the integrated strengths (`k1l`) of quadrupoles.
+- **Associating Variables with Elements**: Variables are linked to elements using references (`line.element_refs`). This allows changes in variables to automatically propagate to the corresponding element properties.
+- **Global Variables**: Global variables (`line.vars['k1lf']` and `line.vars['k1ld']`) can be defined to control multiple quadrupoles simultaneously.
+
+### Creating and Using Expressions
+Expressions can be built using variables to create complex relationships:
+- Variables can be combined using mathematical operations.
+- Expressions update automatically when their dependencies change, maintaining consistency in the model.
+
+### Saving and Loading a Line
+`xtrack` allows saving a line to a JSON file or a dictionary:
+- **Saving to JSON**:
+    ```python
+    line.to_json('line.json')
+    ```
+
+- **Loading from JSON**:
+    ```python
+    line_2 = xt.Line.from_json('line.json')
+    ```
+
+You can also save additional information within the dictionary:
+```
+dct = line.to_dict()
+dct['my_additional_info'] = 'Some important information about this line I created'
+with open('line.json', 'w') as fid:
+    json.dump(dct, fid, cls=xo.JEncoder)
+
+# Loading back
+with open('line.json', 'r') as fid:
+    loaded_dct = json.load(fid)
+line_2 = xt.Line.from_dict(loaded_dct)
+print(loaded_dct['my_additional_info'])
+```

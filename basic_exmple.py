@@ -1,4 +1,7 @@
-
+"""
+Let's start with a working simple simulation. 
+Here we will have a small lattice, we will track a particle and display its (x,px) after each turn
+"""
 #? Import the usual stuff
 import numpy as np
 import matplotlib.pyplot as plt
