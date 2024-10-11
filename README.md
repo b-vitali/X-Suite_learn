@@ -113,3 +113,22 @@ print(loaded_dct['my_additional_info'])
 ### Adding elements
 Taking the previous *line*, we can add sextupoles right after the quadrupoles via `line.insert_element()`
 ![Line example 1 sextupoles](line_example_1_sextupoles.png)
+
+### Slicing
+To improve the simulation it is quite common to *slice* the elements in smaller chunks
+This can be done in various ways using different `slicing_strategies`
+```
+line.slice_thick_elements(
+    slicing_strategies=[
+        # Slicing with thin elements
+        xt.Strategy(slicing=xt.Teapot(1)), # (1) Default applied to all elements
+        xt.Strategy(slicing=xt.Uniform(2), element_type=xt.Bend), # (2) Selection by element type
+        xt.Strategy(slicing=xt.Teapot(3), element_type=xt.Quadrupole),  # (4) Selection by element type
+        xt.Strategy(slicing=xt.Teapot(4), name='mb1.*'), # (5) Selection by name pattern
+        # Slicing with thick elements
+        xt.Strategy(slicing=xt.Uniform(2, mode='thick'), name='mqf.*'), # (6) Selection by name pattern
+        # Do not slice (leave untouched)
+        xt.Strategy(slicing=None, name='mqd.1') # (7) Selection by name
+    ])
+```
+![Line example 1 sextupoles slice](line_example_1_sextupoles_slice.png)

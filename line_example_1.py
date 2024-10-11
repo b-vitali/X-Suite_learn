@@ -19,35 +19,51 @@ import json
 def plot_beamline(line):
     # Create a new figure and axis
     fig, ax = plt.subplots(figsize=(12, 4))
-    current_position = 0
-    y_offset = 0.5  # Vertical offset for elements
+    
+    # Get the table data
+    tab = line.get_table()
+    positions = tab['s']  # Array of positions
+    names = tab['name']   # Array of element names
 
-    for name, element in zip(line.element_names, line.elements):
-        length = element.length if hasattr(element, 'length') else 0
-        
-        # Set color based on element type
-        if isinstance(element, xt.Drift):
-            color = 'blue'
-        elif isinstance(element, xt.Quadrupole):
-            color = 'green' if element.k1 > 0 else 'red'  # Green for focusing, red for defocusing
-        elif isinstance(element, xt.Bend):
-            color = 'orange'
-        elif isinstance(element, xt.Sextupole):
-            color = 'purple'  # Purple for sextupoles
+    # Define a vertical offset for elements
+    y_offset = 0.5
+
+    # Loop through the positions and names
+    for i in range(len(positions)):
+        current_position = positions[i]
+
+        # Determine the length of the element
+        if i < len(positions) - 1:
+            length = positions[i + 1] - current_position
+        else:
+            length = 0  # The last element does not have a length
+
+        # Determine the color based on the name
+        if 'mqf' in names[i]:
+            color = 'green'  # Focusing Quadrupole
+        elif 'mqd' in names[i]:
+            color = 'red'  # Defocusing Quadrupole
+        elif 'mb' in names[i]:
+            color = 'orange'  # Bending Magnet
+        elif 'ms' in names[i]:
+            color = 'magenta'  # Bending Magnet
+        elif 'd' in names[i]:
+            color = 'blue'  # Drift
         else:
             color = 'black'  # Default color for unknown elements
         
         # Plot the element as a rectangle
-        ax.add_patch(plt.Rectangle((current_position, y_offset), length, 0.3, color=color))
+        ax.add_patch(plt.Rectangle((current_position, y_offset), length, 0.3, facecolor=color,  edgecolor='black', linewidth=1))
 
         # Label the element
-        ax.text(current_position + length / 2, y_offset + 0.35, name, ha='center', va='bottom', fontsize=8)
-
-        # Update the position
-        current_position += length
+        ax.text(current_position + length / 2, y_offset + 0.35, names[i], ha='center', va='bottom', fontsize=8, rotation=90)
 
     # Set plot limits and labels
-    ax.set_xlim(0, current_position)
+    if len(positions) > 0:  # Check if positions array is not empty
+        ax.set_xlim(0, positions[-1])
+    else:
+        ax.set_xlim(0, 1)  # Default limit if no positions
+
     ax.set_ylim(0, 2)
     ax.set_xlabel("Position along the beamline (m)")
     ax.set_yticks([])
@@ -56,10 +72,10 @@ def plot_beamline(line):
     # Create a legend
     legend_elements = [
         plt.Line2D([0], [0], color='blue', lw=4, label='Drift'),
+        plt.Line2D([0], [0], color='orange', lw=4, label='Bending Magnet'),
         plt.Line2D([0], [0], color='green', lw=4, label='Focusing Quadrupole'),
         plt.Line2D([0], [0], color='red', lw=4, label='Defocusing Quadrupole'),
-        plt.Line2D([0], [0], color='orange', lw=4, label='Bend'),
-        plt.Line2D([0], [0], color='purple', lw=4, label='Sextupole')
+        plt.Line2D([0], [0], color='magenta', lw=4, label='Sextupole')
     ]
     ax.legend(handles=legend_elements, loc='upper right')
 
@@ -325,4 +341,23 @@ line.insert_element('aper', my_aper, index='mb1.1')
 line.get_table().show()
 
 # Use the function to plot the line
+plot_beamline(line)
+
+
+# Slice different elements with different strategies (in case multiple strategies
+# apply to the same element, the last one takes precedence)
+line.slice_thick_elements(
+    slicing_strategies=[
+        # Slicing with thin elements
+        xt.Strategy(slicing=xt.Teapot(1)), # (1) Default applied to all elements
+        xt.Strategy(slicing=xt.Uniform(2), element_type=xt.Bend), # (2) Selection by element type
+        xt.Strategy(slicing=xt.Teapot(3), element_type=xt.Quadrupole),  # (4) Selection by element type
+        xt.Strategy(slicing=xt.Teapot(4), name='mb1.*'), # (5) Selection by name pattern
+        # Slicing with thick elements
+        xt.Strategy(slicing=xt.Uniform(2, mode='thick'), name='mqf.*'), # (6) Selection by name pattern
+        # Do not slice (leave untouched)
+        xt.Strategy(slicing=None, name='mqd.1') # (7) Selection by name
+    ])
+line.build_tracker()
+
 plot_beamline(line)
