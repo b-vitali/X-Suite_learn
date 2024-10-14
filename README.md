@@ -31,13 +31,16 @@ The code is hevely commented so here I will just outline the steps, which are si
 - Simulate the particles for N turns
 - Collect and plot the results
 
-### Results
 Collecting the tracking information at every turn we can follow the evolution in (\( x, px \))
 ![Phase Space Evolution](basic_example.png)
 
 ## Describe a Line
-Let's now move to [line_example_1.py](line_example_1.py)
+Clearly the first important step is to understand how to describe the beamline we wish to study.
 Here we will see how to define, inspect, manipulate, and save/load a beamline model using the `xtrack`
+We will start with [line_example_1.py](line_example_1.py)
+
+<details>
+<summary>Click here to see more!</summary>
 
 ### Defining a Line
 A line can be defined in several ways:
@@ -132,3 +135,5 @@ line.slice_thick_elements(
     ])
 ```
 ![Line example 1 sextupoles slice](line_example_1_sextupoles_slice.png)
+
+</details>
