@@ -40,7 +40,7 @@ Clearly the first important step is to understand how to describe the beamline w
 Here we will see how to define, inspect, manipulate, and save/load a beamline model using the `xtrack`
 
 > [!NOTE]
-> The corresponding file is [line_example.py](line_example.py)
+> The corresponding file is [line_example.py](line_example/line_example.py)
 > 
 > This is based on : https://xsuite.readthedocs.io/en/latest/line.html
 
@@ -154,7 +154,7 @@ Let's now try and build a proper ring, matched and with FODO structure.
 Once this is done we can add an insertion for an *experiment*.
 
 > [!NOTE]
-> The corresponding file is [ring.py](ring.py)
+> The corresponding file is [ring.py](ring/ring.py)
 > 
 > This is based on : https://github.com/xsuite/tutorial_lattice_design/
 
