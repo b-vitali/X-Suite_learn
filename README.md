@@ -38,9 +38,9 @@ Collecting the tracking information at every turn we can follow the evolution in
 ## Describe a Line
 Clearly the first important step is to understand how to describe the beamline we wish to study.
 Here we will see how to define, inspect, manipulate, and save/load a beamline model using the `xtrack`
-The corresponding file is [line_example.py](line_example.py)
 
 > [!NOTE]
+> The corresponding file is [line_example.py](line_example.py)
 > This is based on : https://xsuite.readthedocs.io/en/latest/line.html
 
 <details>
@@ -71,7 +71,7 @@ elements = {
     ...
 }
 ```
-![Line example 1](line_example.png)
+![Line example 1](line_example/line_example.png)
 
 ### Inspecting a Line
 `xtrack` provides methods to inspect line properties:
@@ -119,7 +119,7 @@ print(loaded_dct['my_additional_info'])
 
 ### Adding elements
 Taking the previous *line*, we can add sextupoles right after the quadrupoles via `line.insert_element()`
-![Line example 1 sextupoles](line_example_sextupoles.png)
+![Line example 1 sextupoles](line_example/line_example_sextupoles.png)
 
 ### Slicing
 To improve the simulation it is quite common to *slice* the elements in smaller chunks
@@ -128,17 +128,17 @@ This can be done in various ways using different `slicing_strategies`
 line.slice_thick_elements(
     slicing_strategies=[
         # Slicing with thin elements
-        xt.Strategy(slicing=xt.Teapot(1)), # (1) Default applied to all elements
-        xt.Strategy(slicing=xt.Uniform(2), element_type=xt.Bend), # (2) Selection by element type
-        xt.Strategy(slicing=xt.Teapot(3), element_type=xt.Quadrupole),  # (4) Selection by element type
-        xt.Strategy(slicing=xt.Teapot(4), name='mb1.*'), # (5) Selection by name pattern
+        xt.Strategy(slicing=xt.Teapot(1)),                              # Default applied to all elements
+        xt.Strategy(slicing=xt.Uniform(2), element_type=xt.Bend),       # Selection by element type
+        xt.Strategy(slicing=xt.Teapot(3), element_type=xt.Quadrupole),  # Selection by element type
+        xt.Strategy(slicing=xt.Teapot(4), name='mb1.*'),                # Selection by name pattern
         # Slicing with thick elements
-        xt.Strategy(slicing=xt.Uniform(2, mode='thick'), name='mqf.*'), # (6) Selection by name pattern
+        xt.Strategy(slicing=xt.Uniform(2, mode='thick'), name='mqf.*'), # Selection by name pattern
         # Do not slice (leave untouched)
         xt.Strategy(slicing=None, name='mqd.1') # (7) Selection by name
     ])
 ```
-![Line example 1 sextupoles slice](line_example_sextupoles_slice.png)
+![Line example 1 sextupoles slice](line_example/line_example_sextupoles_slice.png)
 
 </details>
 
@@ -146,9 +146,9 @@ line.slice_thick_elements(
 
 Let's now try and build a proper ring, matched and with FODO structure.
 Once this is done we can add an insertion for an *experiment*.
-The corresponding file is [ring.py](ring.py)
 
 > [!NOTE]
+> The corresponding file is [ring.py](ring.py)
 > This is based on : https://github.com/xsuite/tutorial_lattice_design/
 
 <details>
@@ -169,7 +169,7 @@ cell = env.new_line(components=[
 ])
 ```
 
-![ring fodo cell](ring_fodo_cell.png)
+![ring fodo cell](ring/ring_fodo_cell.png)
 
 At this point we can *match* and see the resulting *twiss*
 ```
@@ -184,7 +184,7 @@ opt = cell.match(
     ))
 ```
 
-![ring fodo match](ring_fodo_match.png)
+![ring fodo match](ring/ring_fodo_match.png)
 
 
 ### Make a ring
