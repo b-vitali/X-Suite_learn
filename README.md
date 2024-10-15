@@ -41,6 +41,7 @@ Here we will see how to define, inspect, manipulate, and save/load a beamline mo
 
 > [!NOTE]
 > The corresponding file is [line_example.py](line_example.py)
+> 
 > This is based on : https://xsuite.readthedocs.io/en/latest/line.html
 
 <details>
@@ -149,6 +150,7 @@ Once this is done we can add an insertion for an *experiment*.
 
 > [!NOTE]
 > The corresponding file is [ring.py](ring.py)
+> 
 > This is based on : https://github.com/xsuite/tutorial_lattice_design/
 
 <details>
