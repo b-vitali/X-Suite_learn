@@ -209,7 +209,28 @@ ring.survey().plot()
 ```
 
 ![ring full ring](ring/ring_full.png)
+![ring full ring optics](ring/ring_full_twiss.png)
 
 ### Create an insertion
+
+We want now to make some space in this ring for an experiment
+
+We first define a region of 40m with round beta functions
+
+Create a *half section* and match the optics to the FODO
+
+The last step it to make a *whole section* and build the ring
+
+![ring insertion optics](ring/ring_insertion_optics.png)
+
+### Finished lattice
+
+We place the insertion with `ring_2 = 2 * (arc + straight_section) + arc + insertion`
+
+Now we can finally see our results!
+
+![ring full with insertion](ring/ring_full+insertion.png)
+
+![ring full with insertion optics](ring/ring_full+insertion_match.png)
 
 </details>
