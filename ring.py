@@ -118,94 +118,69 @@ print('\nMatch history')
 opt.log()
 
 # Plot the updated optics (Twiss parameters) after matching
-cell.twiss4d().plot()
+tw_cell = cell.twiss4d()
+tw_cell.plot()
+
+# Plot the horizontal and vertical phase advance (mux and muy)
+# These are critical to understand how the lattice affects the particle motion.
+tw_cell.plot('mux muy')
 
 
-##############
+# Define parameters for the straight section
+# The focusing and defocusing strengths are halved compared to the arc
+env.vars({
+    'kqf.ss': 0.027 / 2,     # Reduced focusing strength for quadrupole in the straight section
+    'kqd.ss': -0.0271 / 2,   # Reduced defocusing strength for quadrupole in the straight section
+})
 
-# # In[12]:
+# Define a half-cell structure for the straight section
+halfcell_ss = env.new_line(components=[
+    env.new('mid', xt.Marker, at='l.halfcell'),   # Midpoint marker for the straight section
+    
+    # Straight section quadrupoles
+    env.new('mq.ss.d', 'mq', k1='kqd.ss', at='0.5 + l.mq / 2'),                # Defocusing quadrupole
+    env.new('mq.ss.f', 'mq', k1='kqf.ss', at='l.halfcell - l.mq / 2 - 0.5'),   # Focusing quadrupole
+    
+    # Correctors for the straight section
+    env.new('corrector.ss.v', 'corrector', at=0.75, from_='mq.ss.d'),          # Vertical corrector
+    env.new('corrector.ss.h', 'corrector', at=-0.75, from_='mq.ss.f')          # Horizontal corrector
+])
 
+# Mirror and replicate the half-cell to create the full straight section cell
+hcell_left_ss = halfcell_ss.replicate(name='l', mirror=True)  # Left half of the straight section (mirrored)
+hcell_right_ss = halfcell_ss.replicate(name='r')              # Right half of the straight section
 
-# # Twiss after match
-# tw_cell = cell.twiss4d()
+# Assemble the full straight section cell by combining the mirrored left and right halves
+cell_ss = env.new_line(components=[
+    env.new('start.ss', xt.Marker),  # Start marker for the straight section
+    hcell_left_ss,                   # Left mirrored half-cell
+    hcell_right_ss,                  # Right half-cell
+    env.new('end.ss', xt.Marker),    # End marker for the straight section
+])
 
+# Plot the layout of the straight section cell
+# This provides a visual representation of the straight section layout, showing the components' placement.
+cell_ss.survey().plot()
 
-# # In[13]:
-
-
-# tw_cell.plot()
-
-
-# # In[14]:
-
-
-# tw_cell.plot('mux muy')
-
-
-# # ## Straight section cell
-
-# # In[15]:
-
-
-# env.vars({
-#     'kqf.ss': 0.027 / 2,
-#     'kqd.ss': -0.0271 / 2,
-# })
-
-# halfcell_ss = env.new_line(components=[
-#     env.new('mid', xt.Marker, at='l.halfcell'),
-#     env.new('mq.ss.d', 'mq', k1='kqd.ss', at = '0.5 + l.mq / 2'),
-#     env.new('mq.ss.f', 'mq', k1='kqf.ss', at = 'l.halfcell - l.mq / 2 - 0.5'),
-#     env.new('corrector.ss.v', 'corrector', at=0.75, from_='mq.ss.d'),
-#     env.new('corrector.ss.h', 'corrector', at=-0.75, from_='mq.ss.f')
-# ])
-
-# hcell_left_ss = halfcell_ss.replicate(name='l', mirror=True)
-# hcell_right_ss = halfcell_ss.replicate(name='r')
-# cell_ss = env.new_line(components=[
-#     env.new('start.ss', xt.Marker),
-#     hcell_left_ss,
-#     hcell_right_ss,
-#     env.new('end.ss', xt.Marker),
-# ])
-
-# cell_ss.survey().plot()
+# March to the same betas as the edge of the arc cell
+opt = cell_ss.match(
+    method='4d',
+    vary=xt.VaryList(['kqf.ss', 'kqd.ss'], step=1e-5),
+    targets=xt.TargetSet(
+        betx=tw_cell.betx[-1], bety=tw_cell.bety[-1], at='start.ss',
+    ))
 
 
-# # In[16]:
+# Assemble a ring
+arc = 3 * cell
+arc.survey().plot()
+
+straight_section = 2*cell_ss
+straight_section.survey().plot()
 
 
-# # March to the same betas as the edge of the arc cell
-# opt = cell_ss.match(
-#     method='4d',
-#     vary=xt.VaryList(['kqf.ss', 'kqd.ss'], step=1e-5),
-#     targets=xt.TargetSet(
-#         betx=tw_cell.betx[-1], bety=tw_cell.bety[-1], at='start.ss',
-#     ))
-
-
-# # ## Assemble a ring
-
-# # In[17]:
-
-
-# arc = 3 * cell
-# arc.survey().plot()
-
-
-# # In[18]:
-
-
-# straight_section = 2*cell_ss
-# straight_section.survey().plot()
-
-
-# # In[19]:
-
-
-# ring = 3 * (arc + straight_section)
-
-# ring.survey().plot()
+ring = 3 * (arc + straight_section)
+ring.survey().plot()
 
 
 # # # Inspect optics

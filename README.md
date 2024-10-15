@@ -44,6 +44,11 @@ Here we will see how to define, inspect, manipulate, and save/load a beamline mo
 > 
 > This is based on : https://xsuite.readthedocs.io/en/latest/line.html
 
+> [!CAUTION]
+> For whatever reason describing the line as `xt.Line` makes so `line.survey().plot()` doesn't work
+> 
+> I'm investigating what is going on
+
 <details>
 <summary>Click here to see more!</summary>
 
@@ -190,6 +195,20 @@ opt = cell.match(
 
 
 ### Make a ring
+
+We first define a *half straight section* and build with it a *whole straight section*
+
+Then we can mount multiple FODO and straight sections in a *full ring* with some math
+
+```
+# Assemble a ring
+arc = 3 * cell
+straight_section = 2*cell_ss
+ring = 3 * (arc + straight_section)
+ring.survey().plot()
+```
+
+![ring full ring](ring/ring_full.png)
 
 ### Create an insertion
 
