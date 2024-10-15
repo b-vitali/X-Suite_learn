@@ -8,6 +8,7 @@ This repo is a collection of examples (mostly copied from the x-suite documentat
 - [Install X-Suite or get a Docker](#install-x-suite) 
 - [First working example](#first-working-example)
 - [Describe a Line](#describe-a-line)
+- [Build a ring](#build-a-ring)
 
 ## Install X-Suite
 X-Suite can be easily installed via `pip` but in case you prefer I have a dockerfile you can use.
@@ -37,7 +38,10 @@ Collecting the tracking information at every turn we can follow the evolution in
 ## Describe a Line
 Clearly the first important step is to understand how to describe the beamline we wish to study.
 Here we will see how to define, inspect, manipulate, and save/load a beamline model using the `xtrack`
-We will start with [line_example_1.py](line_example_1.py)
+The corresponding file is [line_example.py](line_example.py)
+
+> [!NOTE]
+> This is based on : https://xsuite.readthedocs.io/en/latest/line.html
 
 <details>
 <summary>Click here to see more!</summary>
@@ -67,7 +71,7 @@ elements = {
     ...
 }
 ```
-![Line example 1](line_example_1.png)
+![Line example 1](line_example.png)
 
 ### Inspecting a Line
 `xtrack` provides methods to inspect line properties:
@@ -115,7 +119,7 @@ print(loaded_dct['my_additional_info'])
 
 ### Adding elements
 Taking the previous *line*, we can add sextupoles right after the quadrupoles via `line.insert_element()`
-![Line example 1 sextupoles](line_example_1_sextupoles.png)
+![Line example 1 sextupoles](line_example_sextupoles.png)
 
 ### Slicing
 To improve the simulation it is quite common to *slice* the elements in smaller chunks
@@ -134,6 +138,57 @@ line.slice_thick_elements(
         xt.Strategy(slicing=None, name='mqd.1') # (7) Selection by name
     ])
 ```
-![Line example 1 sextupoles slice](line_example_1_sextupoles_slice.png)
+![Line example 1 sextupoles slice](line_example_sextupoles_slice.png)
+
+</details>
+
+## Build a ring
+
+Let's now try and build a proper ring, matched and with FODO structure.
+Once this is done we can add an insertion for an *experiment*.
+The corresponding file is [ring.py](ring.py)
+
+> [!NOTE]
+> This is based on : https://github.com/xsuite/tutorial_lattice_design/
+
+<details>
+<summary>Click here to see more!</summary>
+
+### Build a FODO 
+
+First step is defining the variables and the magnets and mount them in a *half cell*.
+
+To make it a full FODO is then it's quite simple, mirroring the half cell.
+```
+# Define the full cell by mirroring the half-cell
+cell = env.new_line(components=[
+    env.new('start', xt.Marker),  # Start marker
+    -halfcell,                    # Mirror the first half of the cell
+    halfcell,                     # Add the second half of the cell
+    env.new('end', xt.Marker),    # End marker
+])
+```
+
+![ring fodo cell](ring_fodo_cell.png)
+
+At this point we can *match* and see the resulting *twiss*
+```
+# Perform phase advance matching (setting the tunes to specific values)
+opt = cell.match(
+    solve=False,  # Do not solve immediately; we'll inspect before solving
+    method='4d',  # 4D matching method
+    vary=xt.VaryList(['kqf', 'kqd'], step=1e-5),  # Vary the strengths of the focusing and defocusing quadrupoles
+    targets=xt.TargetSet(
+        qx=0.333333,  # Target horizontal tune (fractional part of betatron oscillation)
+        qy=0.333333,  # Target vertical tune
+    ))
+```
+
+![ring fodo match](ring_fodo_match.png)
+
+
+### Make a ring
+
+### Create an insertion
 
 </details>
