@@ -1,4 +1,5 @@
 <!-- <div style="width: 830px"> -->
+<div style="width: 830px">
 
 # X-Suite starter pack
 As described on [x-suite website](https://xsuite.readthedocs.io/en/latest/):  
@@ -361,14 +362,46 @@ tune, chromaticity, transition $\gamma_{tr}$, $\beta$ functions, 'closed orbit',
 After defining the line, we just run `tw = line.twiss()`  and all these are easily obtained.  
 For *x* is simply: tune `tw.qx`, chromaticity `tw.dqx`, dispertion `tw.dx`, ...
 
-![twiss_standard](twiss/twiss_standard.png)
 
 We can also see the whole table using `tw.show()` or do some more quaries:  
 in simple cases we might want *scalar* quantities `tw['qx'] = tw.qx` or *columns* `tw['betx']`  
 it is also possible to define additional columns with simple math expression like `tw.cols['betx dx/sqrt(betx)']`  
 *a section of the ring* by name `tw.rows['ip5':'mqxfa.a1r5_exit']` or by position `tw.rows[300:305:'s']`
 
-All the above can be combined in complex quaries like `tw.rows['ip1':'ip2'].rows['mqs.*b1'].cols['betx bety']`
+All can be combined in complex quaries like `tw.rows['ip1':'ip2'].rows['mqs.*b1'].cols['betx bety']`
+
+![twiss_standard](twiss/twiss_standard.png)
+
+To compute the beam size we have to provide the emittances to `tw.get_beam_covariance(...)`.  
+The resulting table can be accessed, for example, by row `beam_sizes.rows['ip.?'].show()`.
+
+```
+# Compute beam sizes
+beam_sizes = tw.get_beam_covariance(nemitt_x=nemitt_x, nemitt_y=nemitt_y, gemitt_zeta=gemitt_zeta)
+
+# Inspect beam sizes (table can be accessed similarly to twiss tables)
+beam_sizes.rows['ip.?'].show()
+# prints
+#
+# name                       s     sigma_x     sigma_y sigma_zeta    sigma_px ...
+# ip3                        0 0.000226516 0.000270642    0.19694 4.35287e-06
+# ip4                  3332.28 0.000281326 0.000320321   0.196941 1.30435e-06
+# ip5                  6664.57  7.0898e-06 7.08975e-06    0.19694  4.7265e-05
+# ip6                  9997.01 0.000314392 0.000248136   0.196939 1.61401e-06
+...
+
+# All covariances are computed including those from linear coupling
+beam_sizes.keys()
+# is:
+#
+# ['s', 'name', 'sigma_x', 'sigma_y', 'sigma_zeta', 'sigma_px', 'sigma_py',
+# 'sigma_pzeta', 'Sigma', 'Sigma11', 'Sigma12', 'Sigma13', 'Sigma14', 'Sigma15',
+# 'Sigma16', 'Sigma21', 'Sigma22', 'Sigma23', 'Sigma24', 'Sigma25', 'Sigma26',
+# 'Sigma31', 'Sigma32', 'Sigma33', 'Sigma34', 'Sigma41', 'Sigma42', 'Sigma43',
+# 'Sigma44', 'Sigma51', 'Sigma52'])
+```
+
+![twiss_beamsize](twiss/twiss_beamsize.png)
 
 ### 4D option
 
@@ -389,6 +422,40 @@ for nn in tab_cav.name:
 
 tw = line.twiss(method='4d')
 ```
+
+### Initial conditions
+
+It is possible to provide, by hand or with a previous twiss, initial conditions.
+
+```
+# Twiss over a range with user-defined initial conditions (at start)
+tw1 = line.twiss(start='ip5', end='mb.c24r5.b1',
+                betx=0.15, bety=0.15, py=1e-6)
+
+
+# Twiss over a range with user-defined initial conditions at end
+tw2 = line.twiss(start='ip5', end='mb.c24r5.b1', init_at=xt.END,
+                alfx=3.50482, betx=131.189, alfy=-0.677173, bety=40.7318,
+                dx=1.22515, dpx=-0.0169647)
+
+# Twiss over a range with user-defined initial conditions at arbitrary location
+tw3 = line.twiss(start='ip5', end='mb.c24r5.b1', init_at='mb.c14r5.b1',
+                 alfx=-0.437695, betx=31.8512, alfy=-6.73282, bety=450.454,
+                 dx=1.22606, dpx=-0.0169647)
+
+# Initial conditions can also be taken from an existing twiss table
+tw4 = line.twiss(start='ip5', end='mb.c24r5.b1', init_at='mb.c14r5.b1',
+                 init=tw_p)
+
+# More explicitly, a `TwissInit` object can be extracted from the twiss table and used as initial conditions
+tw_init = tw_p.get_twiss_init('mb.c14r5.b1',)
+tw5 = line.twiss(start='ip5', end='mb.c24r5.b1', init=tw_init)
+```
+
+The results for `tw5` in this case are the one shown here
+
+![twiss_initialconditions](twiss/twiss_initialconditions.png)
+
 </details>
 
 ## ...Upcoming

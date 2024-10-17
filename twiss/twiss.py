@@ -2,6 +2,21 @@ import numpy as np
 import xtrack as xt
 import matplotlib.pyplot as plt
 
+'''
+Off-momentum twiss
+
+Periodic twiss on a portion of a line
+
+Particles normalized coordinates
+
+Reverse reference frame
+
+Twiss defaults
+
+Twiss with synchrotron radiation
+'''
+
+
 #? How to generate and access the line.twiss() info
 # Load a beamline from a JSON file and set up the reference particle
 line = xt.Line.from_json('twiss_line.json')
@@ -59,8 +74,73 @@ fig1.suptitle(
     r' $\gamma_{tr}$ = ' f'{1/np.sqrt(tw.momentum_compaction_factor):.2f}'
 )
 
+spbet.set_xlim(tw['s', 'ip5'] - 1000, tw['s', 'ip5'] + 1000)
+
 # Adjust subplot spacing for clarity
 fig1.subplots_adjust(left=.15, right=.92, hspace=.27)
+plt.show()
+
+
+# Transverse normalized emittances
+nemitt_x = 2.5e-6
+nemitt_y = 2.5e-6
+
+# Longitudinal emittance from energy spread
+sigma_pzeta = 2e-4
+gemitt_zeta = sigma_pzeta**2 * tw.bets0
+# similarly, if the bunch length is known, the emittance can be computed as
+# gemitt_zeta = sigma_zeta**2 / tw.bets0
+
+# Compute beam sizes
+beam_sizes = tw.get_beam_covariance(nemitt_x=nemitt_x, nemitt_y=nemitt_y,
+                                    gemitt_zeta=gemitt_zeta)
+
+# Inspect beam sizes (table can be accessed similarly to twiss tables)
+beam_sizes.rows['ip.?'].show()
+# prints
+#
+# name                       s     sigma_x     sigma_y sigma_zeta    sigma_px ...
+# ip3                        0 0.000226516 0.000270642    0.19694 4.35287e-06
+# ip4                  3332.28 0.000281326 0.000320321   0.196941 1.30435e-06
+# ip5                  6664.57  7.0898e-06 7.08975e-06    0.19694  4.7265e-05
+# ip6                  9997.01 0.000314392 0.000248136   0.196939 1.61401e-06
+# ip7                  13329.4 0.000205156 0.000223772   0.196939 2.70123e-06
+# ip8                  16650.7 2.24199e-05 2.24198e-05   0.196939 1.49465e-05
+# ip1                  19994.2 7.08975e-06 7.08979e-06   0.196939 4.72651e-05
+# ip2                  23326.6 5.78877e-05 5.78878e-05   0.196939 5.78879e-06
+
+# All covariances are computed including those from linear coupling
+beam_sizes.keys()
+# is:
+#
+# ['s', 'name', 'sigma_x', 'sigma_y', 'sigma_zeta', 'sigma_px', 'sigma_py',
+# 'sigma_pzeta', 'Sigma', 'Sigma11', 'Sigma12', 'Sigma13', 'Sigma14', 'Sigma15',
+# 'Sigma16', 'Sigma21', 'Sigma22', 'Sigma23', 'Sigma24', 'Sigma25', 'Sigma26',
+# 'Sigma31', 'Sigma32', 'Sigma33', 'Sigma34', 'Sigma41', 'Sigma42', 'Sigma43',
+# 'Sigma44', 'Sigma51', 'Sigma52'])
+
+fig2 = plt.figure(1, figsize=(6.4, 4.8*1.5))
+spbet = plt.subplot(3,1,1)
+spdisp = plt.subplot(3,1,2, sharex=spbet)
+spbsz = plt.subplot(3,1,3, sharex=spbet)
+
+spbet.plot(tw.s, tw.betx)
+spbet.plot(tw.s, tw.bety)
+spbet.set_ylabel(r'$\beta_{x,y}$ [m]')
+
+spdisp.plot(tw.s, tw.dx)
+spdisp.plot(tw.s, tw.dy)
+spdisp.set_ylabel(r'$D_{x,y}$ [m]')
+
+spbsz.plot(beam_sizes.s, beam_sizes.sigma_x)
+spbsz.plot(beam_sizes.s, beam_sizes.sigma_y)
+spbsz.set_ylabel(r'$\sigma_{x,y}$ [m]')
+spbsz.set_xlabel('s [m]')
+
+spbet.set_xlim(tw['s', 'ip5'] - 1000, tw['s', 'ip5'] + 1000)
+
+fig2.subplots_adjust(left=.15, right=.92, hspace=.27)
+plt.show()
 
 #? What if there is no RF?
 # Let's turn the RF off
@@ -75,7 +155,70 @@ tw = line.twiss(method='4d')
 
 # tw.show()
 
-#?
+#? Initial conditions
+# Let's turn RF ON again
+line = xt.Line.from_json('twiss_line.json')
+line.particle_ref = xt.Particles(mass0=xt.PROTON_MASS_EV, q0=1, energy0=7e12)
+line.vars['vrf400'] = 16
+line.build_tracker()
+
+# Periodic twiss
+tw_p = line.twiss()
+
+# Twiss over a range with user-defined initial conditions (at start)
+tw1 = line.twiss(start='ip5', end='mb.c24r5.b1',
+                betx=0.15, bety=0.15, py=1e-6)
+
+
+# Twiss over a range with user-defined initial conditions at end
+tw2 = line.twiss(start='ip5', end='mb.c24r5.b1', init_at=xt.END,
+                alfx=3.50482, betx=131.189, alfy=-0.677173, bety=40.7318,
+                dx=1.22515, dpx=-0.0169647)
+
+# Twiss over a range with user-defined initial conditions at arbitrary location
+tw3 = line.twiss(start='ip5', end='mb.c24r5.b1', init_at='mb.c14r5.b1',
+                 alfx=-0.437695, betx=31.8512, alfy=-6.73282, bety=450.454,
+                 dx=1.22606, dpx=-0.0169647)
+
+# Initial conditions can also be taken from an existing twiss table
+tw4 = line.twiss(start='ip5', end='mb.c24r5.b1', init_at='mb.c14r5.b1',
+                 init=tw_p)
+
+# More explicitly, a `TwissInit` object can be extracted from the twiss table and used as initial conditions
+tw_init = tw_p.get_twiss_init('mb.c14r5.b1',)
+tw5 = line.twiss(start='ip5', end='mb.c24r5.b1', init=tw_init)
+
+# Choose the twiss to plot
+tw = tw5
+
+import matplotlib.pyplot as plt
+plt.close('all')
+
+fig1 = plt.figure(1, figsize=(6.4, 4.8*1.5))
+spbet = plt.subplot(3,1,1)
+spco = plt.subplot(3,1,2, sharex=spbet)
+spdisp = plt.subplot(3,1,3, sharex=spbet)
+
+spbet.plot(tw.s, tw.betx)
+spbet.plot(tw.s, tw.bety)
+spbet.set_ylabel(r'$\beta_{x,y}$ [m]')
+
+spco.plot(tw.s, tw.x)
+spco.plot(tw.s, tw.y)
+spco.set_ylabel(r'(Closed orbit)$_{x,y}$ [m]')
+
+spdisp.plot(tw.s, tw.dx)
+spdisp.plot(tw.s, tw.dy)
+spdisp.set_ylabel(r'$D_{x,y}$ [m]')
+spdisp.set_xlabel('s [m]')
+
+for nn in ['ip5', 'mb.c14r5.b1', 'mb.c24r5.b1']:
+    for ax in [spbet, spco, spdisp]:
+        ax.axvline(tw_p['s', nn], color='k', ls='--', alpha=.5)
+    spbet.text(tw_p['s', nn], 22000, nn, rotation=90,
+        horizontalalignment='right', verticalalignment='top', alpha=.5)
+
+fig1.subplots_adjust(left=.15, right=.92, hspace=.27)
 
 # Display the plot
 plt.show()
