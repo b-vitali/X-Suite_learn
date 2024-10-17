@@ -1,8 +1,11 @@
+<div style="width: 830px">
+
 # X-Suite starter pack
-As described on [x-suite website](https://xsuite.readthedocs.io/en/latest/):
+As described on [x-suite website](https://xsuite.readthedocs.io/en/latest/):  
 *Xsuite is a collection python packages for the simulation of the beam dynamics in particle accelerators.*
 
-This repo is a collection of examples (mostly copied from the x-suite documentation) developed to practice with this new tool. 
+This repo is a collection of mostly pre-existing examples developed to practice with this new tool.  
+When possible, I will point to the link of the original example/repo.
 
 ## Table of content
 - [Install X-Suite or get a Docker](#install-x-suite) 
@@ -17,13 +20,13 @@ X-Suite can be easily installed via `pip` but in case you prefer I have a docker
 
 For more information on Docker usage with Xsuite, visit [this Docker repository](https://github.com/b-vitali/Dockers).
 
-This docker has some minimal tweeking to have a functioning jupyter notebook and other small things.
+This docker has some minimal tweeking to have a functioning jupyter notebook and other small things.  
 Most of the requirements for additional tools (MAD-X, Sixtracktools, PyHEADTAIL, ...) are already installed.
 
 ## First working example
-Let's dive right in. The [basic_example.py](basic_example.py) has the minimal functioning parts for a simple simulation
+Let's dive right in. The [basic_example.py](basic_example.py) has the minimal functioning parts for a simple simulation.  
 This code simulates the tracking of particles through a simple lattice using the x-suite library (Xtrack, Xobjects).
-The purpose is to visualize the evolution in phase space (\( x, px \)) of a particle over multiple turns.
+The purpose is to visualize the evolution in phase space \( x, px \) of a particle over multiple turns.
 
 ### Code Overview
 The code is hevely commented so here I will just outline the steps, which are similar in every simulation
@@ -34,12 +37,12 @@ The code is hevely commented so here I will just outline the steps, which are si
 - Simulate the particles for N turns
 - Collect and plot the results
 
-Collecting the tracking information at every turn we can follow the evolution in (\( x, px \))
+Collecting the tracking information at every turn we can follow the evolution in \( x, px \):
 ![Phase Space Evolution](basic_example.png)
 
 ## Describe a Line
-Clearly the first important step is to understand how to describe the beamline we wish to study.
-Here we will see how to define, inspect, manipulate, and save/load a beamline model using the `xtrack`
+Clearly the first important step is to understand how to describe the beamline we wish to study.  
+Here we will see how to define, inspect, manipulate, and save/load a beamline model using the `xtrack`.
 
 > [!NOTE]
 > The corresponding file is [line_example.py](line_example/line_example.py)
@@ -56,9 +59,9 @@ Here we will see how to define, inspect, manipulate, and save/load a beamline mo
 
 ### Defining a Line
 A line can be defined in several ways:
-- **Manually**: By creating individual beamline elements (e.g., `Quadrupole`, `Drift`, `Bend`) and adding them to the line.
-- **Importing from MAD-X**: Using `xt.Line.from_madx_sequence()` to import a line from a MAD-X file.
-- **Using a Sequence**: Defining the line through element positions and properties.
+- **Manually**: Create individual beamline elements (`Quadrupole`, `Drift`, `Bend`) and adding them to the line.
+- **Importing from MAD-X**: Use `xt.Line.from_madx_sequence()` to import a line from a MAD-X file.
+- **Using a Sequence**: Define the line through element positions and properties.
 
 The line define manually in this example is shown here
 ```
