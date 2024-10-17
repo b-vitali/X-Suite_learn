@@ -10,6 +10,7 @@ This repo is a collection of examples (mostly copied from the x-suite documentat
 - [Describe a Line](#describe-a-line)
 - [Build a ring](#build-a-ring)
 - [Acceleration](#Acceleration)
+- [Twiss](#twiss)
 
 ## Install X-Suite
 X-Suite can be easily installed via `pip` but in case you prefer I have a dockerfile you can use.
@@ -321,6 +322,61 @@ mon = line.record_last_track
 
 </details>
 
+## Twiss
+
+Xtrack provides a *twiss method* that can be used to obtain the lattice functions and other quantities.  
+We will see how to obtain and tune chromaticities, slip factor, ...
+
+We will use a pre-defined beamline: [twiss_line.json](twiss/twiss_line.json) taken from [here](https://github.com/xsuite/xtrack/blob/main/test_data/hllhc15_noerrors_nobb/line_and_particle.json)
+
+> [!NOTE]
+> The corresponding file is [twiss.py](twiss.py)
+> 
+> This is based on : https://xsuite.readthedocs.io/en/latest/twiss.html
+
+> [!TIP]
+> Remember to use `tw = line.twiss(method='4d')` if there is no RF in place!
+
+<details>
+<summary>Click here to see more!</summary>
+
+### Access the information
+
+We begin by importing the beamline and plot the 'standard' information we might want:  
+tune, chromaticity, transition $\gamma_{tr}$, $\beta$ functions, 'closed orbit', Dispertion funcions.
+
+After defining the line, we just run `tw = line.twiss()`  and all these are easily obtained.  
+For *x* is simply: tune `tw.qx`, chromaticity `tw.dqx`, dispertion `tw.dx`, ...
+
+![twiss_standard](twiss/twiss_standard.png)
+
+We can also see the whole table using `tw.show()` or do some more quaries:  
+in simple cases we might want *scalar* quantities `tw['qx'] = tw.qx` or *columns* `tw['betx']`  
+it is also possible to define additional columns with simple math expression like `tw.cols['betx dx/sqrt(betx)']`  
+*a section of the ring* by name `tw.rows['ip5':'mqxfa.a1r5_exit']` or by position `tw.rows[300:305:'s']`
+
+All the above can be combined in complex quaries like `tw.rows['ip1':'ip2'].rows['mqs.*b1'].cols['betx bety']`
+
+### 4D option
+
+If there are no RF cavities or they are switched off `line.twiss()` will fail.  
+The work around is to use the 4D option as shown here:
+
+```
+# We consider a case in which all RF cavities are off
+tab = line.get_table()
+tab_cav = tab.rows[tab.element_type == 'Cavity']
+for nn in tab_cav.name:
+    line[nn].voltage = 0
+
+# For this configuration, `line.twiss()` gives an error because the
+# longitudinal motion is not stable.
+# In this case, the '4d' method of `line.twiss()` can be used to compute the
+# twiss parameters.
+
+tw = line.twiss(method='4d')
+```
+</details>
 
 ## ...Upcoming
 
