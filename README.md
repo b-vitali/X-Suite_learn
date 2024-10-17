@@ -1,4 +1,4 @@
-<div style="width: 830px">
+<!-- <div style="width: 830px"> -->
 
 # X-Suite starter pack
 As described on [x-suite website](https://xsuite.readthedocs.io/en/latest/):  
