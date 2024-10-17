@@ -1,4 +1,5 @@
 <!-- <div style="width: 830px"> -->
+<div style="width: 830px">
 
 # X-Suite starter pack
 As described on [x-suite website](https://xsuite.readthedocs.io/en/latest/):  
@@ -24,9 +25,16 @@ This docker has some minimal tweeking to have a functioning jupyter notebook and
 Most of the requirements for additional tools (MAD-X, Sixtracktools, PyHEADTAIL, ...) are already installed.
 
 ## First working example
-Let's dive right in. The [basic_example.py](basic_example.py) has the minimal functioning parts for a simple simulation.  
-This code simulates the tracking of particles through a simple lattice using the x-suite library (Xtrack, Xobjects).
+This code simulates the tracking of particles through a simple lattice using the x-suite library.  
 The purpose is to visualize the evolution in phase space \( x, px \) of a particle over multiple turns.
+
+> [!NOTE]
+> The corresponding file is [basic_example.py](basic_example.py)
+> 
+> This is based on : https://xsuite.readthedocs.io/en/latest/singlepart.html
+
+<details>
+<summary>Click here to see more!</summary>
 
 ### Code Overview
 The code is hevely commented so here I will just outline the steps, which are similar in every simulation
@@ -39,6 +47,9 @@ The code is hevely commented so here I will just outline the steps, which are si
 
 Collecting the tracking information at every turn we can follow the evolution in \( x, px \):
 ![Phase Space Evolution](basic_example.png)
+
+</details>
+
 
 ## Describe a Line
 Clearly the first important step is to understand how to describe the beamline we wish to study.  
@@ -155,7 +166,7 @@ line.slice_thick_elements(
 
 ## Build a ring
 
-Let's now try and build a proper ring, matched and with FODO structure.
+Let's now try and build a proper ring, matched and with FODO structure.  
 Once this is done we can add an insertion for an *experiment*.
 
 > [!NOTE]
