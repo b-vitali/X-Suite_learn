@@ -10,7 +10,8 @@ When possible, I will point to the link of the original example/repo.
 ## Table of content
 - [Install X-Suite or get a Docker](#install-x-suite) 
 - [First working example](#first-working-example)
-- [Describe a Line](#describe-a-line)
+- [Describe a line](#describe-a-line)
+- [Control a line](#control-a-line)
 - [Build a ring](#build-a-ring)
 - [Twiss](#twiss)
 - [Acceleration](#Acceleration)
@@ -50,7 +51,7 @@ Collecting the tracking information at every turn we can follow the evolution in
 </details>
 
 
-## Describe a Line
+## Describe a line
 Clearly the first important step is to understand how to describe the beamline we wish to study.  
 Here we will see how to define, inspect, manipulate, and save/load a beamline model using the `xtrack`.
 
