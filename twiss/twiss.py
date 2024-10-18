@@ -5,10 +5,6 @@ import matplotlib.pyplot as plt
 '''
 Off-momentum twiss
 
-Periodic twiss on a portion of a line
-
-Particles normalized coordinates
-
 Reverse reference frame
 
 Twiss with synchrotron radiation
@@ -147,6 +143,24 @@ spbet.set_xlim(tw['s', 'ip5'] - 1000, tw['s', 'ip5'] + 1000)
 
 fig2.subplots_adjust(left=.15, right=.92, hspace=.27)
 plt.show()
+
+#? Particle physical coordinates <-> normalized coordinates?
+# Generate some particles with known normalized coordinates
+particles = line.build_particles(
+    nemitt_x=2.5e-6, nemitt_y=1e-6,
+    x_norm=[-1, 0, 0.5], y_norm=[0.3, -0.2, 0.2],
+    px_norm=[0.1, 0.2, 0.3], py_norm=[0.5, 0.6, 0.8],
+    zeta=[0, 0.1, -0.1], delta=[1e-4, 0., -1e-4])
+
+# Inspect physical coordinates
+tab = particles.get_table()
+tab.show()
+
+# Use twiss to compute normalized coordinates
+norm_coord = tw.get_normalized_coordinates(particles, nemitt_x=2.5e-6, nemitt_y=1e-6)
+
+# Inspect normalized coordinates
+norm_coord.show()
 
 #? What if there is no RF?
 # Let's turn the RF off
