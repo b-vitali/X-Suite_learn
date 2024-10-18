@@ -159,6 +159,11 @@ This is what we do for this example
 - **Table view**: Generate a detailed table with information about each element (`line.get_table()`).
 
 ```
+# Quick access to an element and its attributes by name (line['mqf.1']) or index (line[0])
+line['mqf.1'] # is Quadrupole(length=0.3, k1=0.1, ...)
+line['mqf.1'].k1 # is 0.1
+line['mqf.1'].length # is 0.3
+
 # Tuple with all element names
 line.element_names # is ('mqf.1', 'd1.1', 'mb1.1', 'd2.1', 'mqd.1', ...)
 
@@ -175,6 +180,17 @@ line.attr.keys() # is ('length', 'k1', 'k1l', 'k2', 'k2l', 'k3', 'k3l', 'k4', ..
 # `line.get_table()` can be used to get a table with information about the line elements
 tab = line.get_table()
 tab.show()
+
+# Access to a single element of the table
+tab['s', 'mb2.1'] # is 6.6
+
+# Access to a single column of the table
+tab['s'] # is [0.0, 0.3, 1.3, 4.3, 5.3, 5.6, 6.6, 9.6, 10.6, 10.9, 11.9, ...]
+
+# Regular expressions can be used to select elements by name
+tab.rows['mb.*']
+
+...
 ```
 
 ### Saving and Loading a Line
@@ -228,7 +244,7 @@ line.slice_thick_elements(
 
 </details>
 
-## Controll a line
+## Control a line
 Clearly it is not feaseble to chage values by hand and re-save a line.json.  
 There are few options to ease the control over the beamlines once created.
 
