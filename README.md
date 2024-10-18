@@ -15,6 +15,7 @@ When possible, I will point to the link of the original example/repo.
 - [Build a ring](#build-a-ring)
 - [Twiss](#twiss)
 - [Match](#match)
+- [Match multiple lines](#match-multiple-lines)
 - [Acceleration](#acceleration)
 
 ## Install X-Suite
@@ -664,9 +665,6 @@ This is done via the numerical optimizer `match` method
 >
 > We will use a pre-defined beamline: [match_line.json](match/match_line.json) taken from [here](https://github.com/xsuite/xtrack/blob/main/test_data/hllhc15_thick/lhc_thick_with_knobs.json)
 
-> [!WARNING]
-> Work in progress
-
 <details>
 <summary>Click here to see more!</summary>
 
@@ -707,6 +705,7 @@ knobs_after_match = opt.get_knob_values()
 ![match_base](match/match_basic.png)
 
 ### Match in a specific location
+
 The match can be performed on a specific portion/position of the beamline.  
 This is done providing `xt.START` and `xt.EDN`
 
@@ -768,9 +767,41 @@ opt = line.match(
         xt.TargetSet(['y', 'py'], value=tw0, at=xt.START) # <-- Target from table
     ])
 ```
-
 </details>
 
+## Match multiple lines
+What if we have multiple lines to match?  
+And what if we need more flexibility?
+
+> [!NOTE]
+> The corresponding file is [match.py](match/match_multiplelines.py)
+> 
+> This is based on : https://xsuite.readthedocs.io/en/latest/match.html
+>
+> We will use a pre-defined beamline: [match_collider_line.json](match/match_collider_line.json) taken from [here](https://github.com/xsuite/xtrack/blob/main/test_data/hllhc15_thick/hllhc15_collider_thick.json)
+
+> [!TIP]
+> Remember *callables* and *inequalities* to have more flexibility when matching!
+
+<details>
+<summary>Click here to see more!</summary>
+
+### Callables and Inequalities
+In xtrack, *callables* and *inequalities* are ways to define matching targets.  
+Their use allows matching of conditions involving multiple beams or parameters.
+They are more flexible ways, beyond simple value matching.
+
+1. Callable: is a function that returns a value based on the current state.  
+This allows for complex conditions based on multiple parameters.  
+Example: Ensures the sum of angles (py) of lhcb1 and lhcb2 at ip5 is zero:  
+`xt.Target(lambda tw: tw.lhcb1['py', 'ip5'] + tw.lhcb2['py', 'ip5'], value=0)`  
+
+2. Inequality: set upper or lower bounds for parameters, allowing a range.  
+Example: Specifies that py for lhcb1 at ip5 must be between 9e-6 and 11e-6:
+`xt.Target('py', xt.GreaterThan(9e-6), at='ip5', line='lhcb1')`  
+`xt.Target('py', xt.LessThan(11e-6), at='ip5', line='lhcb1')`  
+
+</details>
 
 ## Acceleration
 Let's see what happens when we rump up the energy of the particles
