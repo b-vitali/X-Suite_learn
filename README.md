@@ -848,11 +848,10 @@ opt = collider.match(
         xt.Target('py', xt.LessThan(  11e-6), at='ip5', line='lhcb1'), # <-- inequality
         xt.Target(y=0, at='ip5', line='lhcb2'),
         xt.Target(
-            lambda tw: tw.lhcb1['py', 'ip5'] + tw.lhcb2['py', 'ip5'], value=0), # <-- callable
+            lambda tw: tw.lhcb1['py', 'ip5'] + tw.lhcb2['py', 'ip5'], value=0), # <- callable
         xt.TargetSet(y=0, py=0, at=xt.END, line='lhcb1'),
         xt.TargetSet(y=0, py=0, at=xt.END, line='lhcb2')
     ])
-opt.target_status()
 ```
 
 The resulting plot is the same as in the previous paragraph.
