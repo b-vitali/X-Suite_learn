@@ -16,7 +16,6 @@ Twiss defaults
 Twiss with synchrotron radiation
 '''
 
-
 #? How to generate and access the line.twiss() info
 # Load a beamline from a JSON file and set up the reference particle
 line = xt.Line.from_json('twiss_line.json')
@@ -49,15 +48,15 @@ spco = plt.subplot(3,1,2, sharex=spbet)  # Subplot for the closed orbit, sharing
 spdisp = plt.subplot(3,1,3, sharex=spbet)  # Subplot for dispersion functions, also sharing the x-axis
 
 # Plot horizontal and vertical beta functions
-spbet.plot(tw.s, tw.betx, label=r'$\beta_x$')
-spbet.plot(tw.s, tw.bety, label=r'$\beta_y$')
-spbet.set_ylabel(r'$\beta_{x,y}$ [m]')
+spbet.plot(tw.s, tw.betx*1e-3, label=r'$\beta_x$')
+spbet.plot(tw.s, tw.bety*1e-3, label=r'$\beta_y$')
+spbet.set_ylabel(r'$\beta_{x,y}$ [km]')
 spbet.legend()
 
 # Plot horizontal and vertical closed orbits
-spco.plot(tw.s, tw.x, label=r'$x$')
-spco.plot(tw.s, tw.y, label=r'$y$')
-spco.set_ylabel(r'(Closed orbit)$_{x,y}$ [m]')
+spco.plot(tw.s, tw.x*1e6, label=r'$x$')
+spco.plot(tw.s, tw.y*1e6, label=r'$y$')
+spco.set_ylabel(r'(Closed orbit)$_{x,y}$ [$\mu$m]')
 spco.legend()
 
 # Plot horizontal and vertical dispersions
@@ -80,7 +79,7 @@ spbet.set_xlim(tw['s', 'ip5'] - 1000, tw['s', 'ip5'] + 1000)
 fig1.subplots_adjust(left=.15, right=.92, hspace=.27)
 plt.show()
 
-
+#? What about the *beam size*?
 # Transverse normalized emittances
 nemitt_x = 2.5e-6
 nemitt_y = 2.5e-6
@@ -88,8 +87,7 @@ nemitt_y = 2.5e-6
 # Longitudinal emittance from energy spread
 sigma_pzeta = 2e-4
 gemitt_zeta = sigma_pzeta**2 * tw.bets0
-# similarly, if the bunch length is known, the emittance can be computed as
-# gemitt_zeta = sigma_zeta**2 / tw.bets0
+# similarly, if the bunch length is known, the emittance can be computed as gemitt_zeta = sigma_zeta**2 / tw.bets0
 
 # Compute beam sizes
 beam_sizes = tw.get_beam_covariance(nemitt_x=nemitt_x, nemitt_y=nemitt_y,
@@ -124,18 +122,28 @@ spbet = plt.subplot(3,1,1)
 spdisp = plt.subplot(3,1,2, sharex=spbet)
 spbsz = plt.subplot(3,1,3, sharex=spbet)
 
-spbet.plot(tw.s, tw.betx)
-spbet.plot(tw.s, tw.bety)
-spbet.set_ylabel(r'$\beta_{x,y}$ [m]')
+spbet.plot(tw.s, tw.betx*1e-3, label=r'$\beta_x$')
+spbet.plot(tw.s, tw.bety*1e-3, label=r'$\beta_y$')
+spbet.set_ylabel(r'$\beta_{x,y}$ [km]')
+spbet.legend()
 
-spdisp.plot(tw.s, tw.dx)
-spdisp.plot(tw.s, tw.dy)
+spdisp.plot(tw.s, tw.dx, label=r'$D_x$')
+spdisp.plot(tw.s, tw.dy, label=r'$D_y$')
 spdisp.set_ylabel(r'$D_{x,y}$ [m]')
+spdisp.set_xlabel('s [m]')
+spdisp.legend()
 
-spbsz.plot(beam_sizes.s, beam_sizes.sigma_x)
-spbsz.plot(beam_sizes.s, beam_sizes.sigma_y)
-spbsz.set_ylabel(r'$\sigma_{x,y}$ [m]')
+spbsz.plot(beam_sizes.s, beam_sizes.sigma_x*1e3, label=r'$\sigma_x$')
+spbsz.plot(beam_sizes.s, beam_sizes.sigma_y*1e3, label=r'$\sigma_y$')
+spbsz.set_ylabel(r'$\sigma_{x,y}$ [mm]')
 spbsz.set_xlabel('s [m]')
+spbsz.legend()
+
+fig2.suptitle(
+    r'$q_x$ = ' f'{tw.qx:.5f}' r' $q_y$ = ' f'{tw.qy:.5f}' '\n'
+    r"$Q'_x$ = " f'{tw.dqx:.2f}' r" $Q'_y$ = " f'{tw.dqy:.2f}'
+    r' $\gamma_{tr}$ = ' f'{1/np.sqrt(tw.momentum_compaction_factor):.2f}'
+)
 
 spbet.set_xlim(tw['s', 'ip5'] - 1000, tw['s', 'ip5'] + 1000)
 
@@ -199,23 +207,26 @@ spbet = plt.subplot(3,1,1)
 spco = plt.subplot(3,1,2, sharex=spbet)
 spdisp = plt.subplot(3,1,3, sharex=spbet)
 
-spbet.plot(tw.s, tw.betx)
-spbet.plot(tw.s, tw.bety)
-spbet.set_ylabel(r'$\beta_{x,y}$ [m]')
+spbet.plot(tw.s, tw.betx*1e-3, label=r'$\beta_x$')
+spbet.plot(tw.s, tw.bety*1e-3, label=r'$\beta_y$')
+spbet.set_ylabel(r'$\beta_{x,y}$ [km]')
+spbet.legend()
 
-spco.plot(tw.s, tw.x)
-spco.plot(tw.s, tw.y)
-spco.set_ylabel(r'(Closed orbit)$_{x,y}$ [m]')
+spco.plot(tw.s, tw.x*1e6, label=r'$x$')
+spco.plot(tw.s, tw.y*1e6, label=r'$y$')
+spco.set_ylabel(r'(Closed orbit)$_{x,y}$ [$\mu$m]')
+spco.legend()
 
-spdisp.plot(tw.s, tw.dx)
-spdisp.plot(tw.s, tw.dy)
+spdisp.plot(tw.s, tw.dx, label=r'$D_x$')
+spdisp.plot(tw.s, tw.dy, label=r'$D_y$')
 spdisp.set_ylabel(r'$D_{x,y}$ [m]')
 spdisp.set_xlabel('s [m]')
+spdisp.legend()
 
 for nn in ['ip5', 'mb.c14r5.b1', 'mb.c24r5.b1']:
     for ax in [spbet, spco, spdisp]:
         ax.axvline(tw_p['s', nn], color='k', ls='--', alpha=.5)
-    spbet.text(tw_p['s', nn], 22000, nn, rotation=90,
+    spbet.text(tw_p['s', nn], 22, nn, rotation=90,
         horizontalalignment='right', verticalalignment='top', alpha=.5)
 
 fig1.subplots_adjust(left=.15, right=.92, hspace=.27)

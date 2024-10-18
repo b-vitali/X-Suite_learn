@@ -1,5 +1,4 @@
-<!-- <div style="width: 830px"> -->
-<div style="width: 830px">
+<!-- vscode-only-start --><div style="width: 830px"><!-- vscode-only-end -->
 
 # X-Suite starter pack
 As described on [x-suite website](https://xsuite.readthedocs.io/en/latest/):  
@@ -13,8 +12,8 @@ When possible, I will point to the link of the original example/repo.
 - [First working example](#first-working-example)
 - [Describe a Line](#describe-a-line)
 - [Build a ring](#build-a-ring)
-- [Acceleration](#Acceleration)
 - [Twiss](#twiss)
+- [Acceleration](#Acceleration)
 
 ## Install X-Suite
 X-Suite can be easily installed via `pip` but in case you prefer I have a dockerfile you can use.
@@ -251,90 +250,6 @@ Now we can finally see our results!
 
 </details>
 
-## Acceleration
-Let's see what happens when we rump up the energy of the particles
-
-> [!NOTE]
-> The corresponding file is [acceleration.py](acceleration/acceleration.py)
-> 
-> This is based on : https://github.com/xsuite/xtrack/blob/main/examples/acceleration/001_energy_ramp.py
-
-<details>
-<summary>Click here to see more!</summary>
-
-### Line and intended ramp-up
-
-We start by importing a pre-existing beamline [acceleration_line.json](acceleration/acceleration_line.json)
-
-![acceleration line](acceleration/acceleration_line.png)
-
-
-We then define how we want to ramp-up the energy
-
-```
-# User-defined energy ramp: time values [s] and corresponding kinetic energies [GeV]
-t_s = np.array([0., 0.0006, 0.0008, 0.001 , 0.0012, 0.0014, 0.0016, 0.0018,
-                0.002 , 0.0022, 0.0024, 0.0026, 0.0028, 0.003, 0.01])
-
-E_kin_GeV = np.array([0.16000000,0.16000000,
-    0.16000437, 0.16001673, 0.16003748, 0.16006596, 0.16010243, 0.16014637,
-    0.16019791, 0.16025666, 0.16032262, 0.16039552, 0.16047524, 0.16056165,
-    0.163586])
-
-# Attach the energy program to the line to define how the kinetic energy evolves over time
-line.energy_program = xt.EnergyProgram(
-    t_s=t_s,                            # Array of time points [s]
-    kinetic_energy0=E_kin_GeV * 1e9     # Corresponding kinetic energies [eV]
-)
-```
-
-### Propagate the ramp-up to the elements
-
-Now we need to tell te elements in the line to follow the ramp-up we created
-
-```
-
-# Setup the RF cavity frequency to stay on the second harmonic of the revolution frequency
-t_rf = np.linspace(0, 3e-3, 100)                    # Time samples for the frequency program (in seconds)
-f_rev = line.energy_program.get_frev_at_t_s(t_rf)   # Get revolution frequency for each time sample
-h_rf = 2                                            # Harmonic number
-f_rf = h_rf * f_rev                                 # Calculate RF frequency as harmonic number times revolution frequency
-
-# Build a piecewise linear function using the time and frequency samples and link it to the RF cavity
-line.functions['fun_f_rf'] = xt.FunctionPieceWiseLinear(x=t_rf, y=f_rf)
-line.element_refs['br.c02'].frequency = line.functions['fun_f_rf'](
-                                                        line.vars['t_turn_s']) # Assign the RF frequency function
-
-# Setup the voltage and phase lag of the RF cavity
-line.element_refs['br.c02'].voltage = 3000  # Set the RF cavity voltage [V]
-line.element_refs['br.c02'].lag = 0         # Set the phase lag (in degrees, below transition energy)
-
-# When setting the line variable 't_turn_s', the reference energy and the RF frequency are updated automatically
-line.vars['t_turn_s'] = 0
-line.particle_ref.kinetic_energy0   # Kinetic energy should be 160.00000 MeV
-line['br.c02'].frequency            # RF frequency should be 1983931.935 Hz
-
-line.vars['t_turn_s'] = 3e-3
-line.particle_ref.kinetic_energy0   # Kinetic energy updates to 160.56165 MeV
-line['br.c02'].frequency            # RF frequency updates to 1986669.0559674294 Hz
-
-# Reset to zero for tracking (prepare initial state)
-line.vars['t_turn_s'] = 0
-
-# Track a few particles to visualize the longitudinal phase space
-p_test = line.build_particles(x_norm=0, zeta=np.linspace(0, line.get_length(), 101))
-
-# Enable time-dependent variables (automatically update variables like 't_turn_s' at each turn)
-line.enable_time_dependent_vars = True
-
-# Track particles for 9000 turns and record data, with progress tracking enabled
-line.track(p_test, num_turns=9000, turn_by_turn_monitor=True, with_progress=True)
-mon = line.record_last_track
-```
-
-![acceleration](acceleration/acceleration.png)
-
-</details>
 
 ## Twiss
 
@@ -457,6 +372,92 @@ The results for `tw5` in this case are the one shown here
 ![twiss_initialconditions](twiss/twiss_initialconditions.png)
 
 </details>
+
+## Acceleration
+Let's see what happens when we rump up the energy of the particles
+
+> [!NOTE]
+> The corresponding file is [acceleration.py](acceleration/acceleration.py)
+> 
+> This is based on : https://github.com/xsuite/xtrack/blob/main/examples/acceleration/001_energy_ramp.py
+
+<details>
+<summary>Click here to see more!</summary>
+
+### Line and intended ramp-up
+
+We start by importing a pre-existing beamline [acceleration_line.json](acceleration/acceleration_line.json)
+
+![acceleration line](acceleration/acceleration_line.png)
+
+
+We then define how we want to ramp-up the energy
+
+```
+# User-defined energy ramp: time values [s] and corresponding kinetic energies [GeV]
+t_s = np.array([0., 0.0006, 0.0008, 0.001 , 0.0012, 0.0014, 0.0016, 0.0018,
+                0.002 , 0.0022, 0.0024, 0.0026, 0.0028, 0.003, 0.01])
+
+E_kin_GeV = np.array([0.16000000,0.16000000,
+    0.16000437, 0.16001673, 0.16003748, 0.16006596, 0.16010243, 0.16014637,
+    0.16019791, 0.16025666, 0.16032262, 0.16039552, 0.16047524, 0.16056165,
+    0.163586])
+
+# Attach the energy program to the line to define how the kinetic energy evolves over time
+line.energy_program = xt.EnergyProgram(
+    t_s=t_s,                            # Array of time points [s]
+    kinetic_energy0=E_kin_GeV * 1e9     # Corresponding kinetic energies [eV]
+)
+```
+
+### Propagate the ramp-up to the elements
+
+Now we need to tell te elements in the line to follow the ramp-up we created
+
+```
+
+# Setup the RF cavity frequency to stay on the second harmonic of the revolution frequency
+t_rf = np.linspace(0, 3e-3, 100)                    # Time samples for the frequency program (in seconds)
+f_rev = line.energy_program.get_frev_at_t_s(t_rf)   # Get revolution frequency for each time sample
+h_rf = 2                                            # Harmonic number
+f_rf = h_rf * f_rev                                 # Calculate RF frequency as harmonic number times revolution frequency
+
+# Build a piecewise linear function using the time and frequency samples and link it to the RF cavity
+line.functions['fun_f_rf'] = xt.FunctionPieceWiseLinear(x=t_rf, y=f_rf)
+line.element_refs['br.c02'].frequency = line.functions['fun_f_rf'](
+                                                        line.vars['t_turn_s']) # Assign the RF frequency function
+
+# Setup the voltage and phase lag of the RF cavity
+line.element_refs['br.c02'].voltage = 3000  # Set the RF cavity voltage [V]
+line.element_refs['br.c02'].lag = 0         # Set the phase lag (in degrees, below transition energy)
+
+# When setting the line variable 't_turn_s', the reference energy and the RF frequency are updated automatically
+line.vars['t_turn_s'] = 0
+line.particle_ref.kinetic_energy0   # Kinetic energy should be 160.00000 MeV
+line['br.c02'].frequency            # RF frequency should be 1983931.935 Hz
+
+line.vars['t_turn_s'] = 3e-3
+line.particle_ref.kinetic_energy0   # Kinetic energy updates to 160.56165 MeV
+line['br.c02'].frequency            # RF frequency updates to 1986669.0559674294 Hz
+
+# Reset to zero for tracking (prepare initial state)
+line.vars['t_turn_s'] = 0
+
+# Track a few particles to visualize the longitudinal phase space
+p_test = line.build_particles(x_norm=0, zeta=np.linspace(0, line.get_length(), 101))
+
+# Enable time-dependent variables (automatically update variables like 't_turn_s' at each turn)
+line.enable_time_dependent_vars = True
+
+# Track particles for 9000 turns and record data, with progress tracking enabled
+line.track(p_test, num_turns=9000, turn_by_turn_monitor=True, with_progress=True)
+mon = line.record_last_track
+```
+
+![acceleration](acceleration/acceleration.png)
+
+</details>
+
 
 ## ...Upcoming
 
