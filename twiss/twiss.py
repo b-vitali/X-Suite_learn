@@ -2,14 +2,6 @@ import numpy as np
 import xtrack as xt
 import matplotlib.pyplot as plt
 
-'''
-Off-momentum twiss
-
-Reverse reference frame
-
-Twiss with synchrotron radiation
-'''
-
 #? How to generate and access the line.twiss() info
 # Load a beamline from a JSON file and set up the reference particle
 line = xt.Line.from_json('twiss_line.json')
@@ -174,6 +166,36 @@ for nn in tab_cav.name:
 tw = line.twiss(method='4d')
 
 # tw.show()
+
+#? Let's see the effect of a momentum offset
+# Define some values of the offset
+delta_values = np.linspace(-5e-3, 5e-3, 50)
+
+# Loop on the values and evaluate the twiss with that specific delta
+# We save the x and y tunes to show them as function of delta
+qx_values = delta_values * 0
+qy_values = delta_values * 0
+for i, delta in enumerate(delta_values):
+    print(f'Xsuite working on {i} of {len(delta_values)}  ', end='\r', flush=True)
+    tt = line.twiss(method='4d', delta0=delta)
+
+    qx_values[i] = tt.qx
+    qy_values[i] = tt.qy
+
+# Figure with tunes and delta
+fig2 = plt.figure(2)
+plt.subplot(211)
+plt.plot(delta_values, qx_values, '.', label='xtrack')
+plt.ylabel(r'$Q_x$')
+
+plt.subplot(212)
+plt.plot(delta_values, qy_values, '.', label='xtrack')
+plt.xlabel(r'$\delta$')
+plt.ylabel(r'$Q_y$')
+
+fig2.suptitle("Tunes dependece from momentum offset")
+
+plt.show()
 
 #? Initial conditions
 # Let's turn RF ON again

@@ -318,6 +318,15 @@ beam_sizes.keys()
 
 ![twiss_beamsize](twiss/twiss_beamsize.png)
 
+### Reverse
+The `reverse` flag enables the retrieval of the Twiss parameters in a counter-rotating reference frame. 
+
+When `reverse` is set to `True`, the following changes occur:
+- The order of the elements is reversed.
+- The zero points for `s` and the phase advances are adjusted to the new starting point.
+- The signs of `s'` and `x'` are inverted, while the sign of `y` remains unchanged.
+
+
 ### Particles physical/normalized coordinates
 
 Twiss can be also used to convert particle physical coordinates into normalized coordinates.
@@ -374,12 +383,19 @@ for nn in tab_cav.name:
 tw = line.twiss(method='4d')
 ```
 
-###
+### Portion of the beamline
 The twiss method can also be used to find the periodic solution for a portion of a beam line.  
 We must simply specify *start* and *end* plus use the `periodic` flag.
 ```
 tw = line.twiss(method='4d', start='mq.14r6.b1', end='mq.16r6.b1', init='periodic')
 ```
+
+### Off momentum 
+
+The `4d` option can be used to study the dependences from the momentum offset.  
+This is done with `line.twiss(method='4d', delta0=delta)`.
+
+![twiss_offmomentum](twiss/twiss_offmomentum.png)
 
 ### Initial conditions
 
