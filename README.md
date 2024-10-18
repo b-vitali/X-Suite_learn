@@ -786,6 +786,35 @@ And what if we need more flexibility?
 <details>
 <summary>Click here to see more!</summary>
 
+
+### Basics of multiple lines matching
+The match method can also be used to match multiple lines at the same time.  
+In this example we match orbit bumps in the two beams of a collider,  
+the aim is to obtain a given crossing angle between the two beams.  
+NB: Some of the used dipole magnets are shared between the two beams.
+
+```
+opt = collider.match(
+    lines=['lhcb1', 'lhcb2'],
+    start=['e.ds.l5.b1', 'e.ds.l5.b2'],
+    end=['s.ds.r5.b1', 's.ds.r5.b2'],
+    init=tw0,
+    vary=xt.VaryList([
+        'acbxv1.r5', 'acbxv1.l5', # <-- common elements
+        'acbyvs4.l5b1', 'acbrdv4.r5b1', 'acbcv5.l5b1', # <-- b1
+        'acbyvs4.l5b2', 'acbrdv4.r5b2', 'acbcv5.r5b2', # <-- b2
+        ],
+        step=1e-10, limits=[-1e-3, 1e-3]),
+    targets = [
+        xt.TargetSet(y=0, py=10e-6, at='ip5', line='lhcb1'),
+        xt.TargetSet(y=0, py=-10e-6, at='ip5', line='lhcb2'),
+        xt.TargetSet(y=0, py=0, at=xt.END, line='lhcb1'),
+        xt.TargetSet(y=0, py=0, at=xt.END, line='lhcb2')
+    ])
+```
+
+![match multiplelines](match/match_multiplelines.png)
+
 ### Callables and Inequalities
 In xtrack, *callables* and *inequalities* are ways to define matching targets.  
 Their use allows matching of conditions involving multiple beams or parameters.
@@ -800,6 +829,33 @@ Example: Ensures the sum of angles (py) of lhcb1 and lhcb2 at ip5 is zero:
 Example: Specifies that py for lhcb1 at ip5 must be between 9e-6 and 11e-6:
 `xt.Target('py', xt.GreaterThan(9e-6), at='ip5', line='lhcb1')`  
 `xt.Target('py', xt.LessThan(11e-6), at='ip5', line='lhcb1')`  
+
+```
+opt = collider.match(
+    lines=['lhcb1', 'lhcb2'],
+    start=['e.ds.l5.b1', 'e.ds.l5.b2'],
+    end=['s.ds.r5.b1', 's.ds.r5.b2'],
+    init=tw0,
+    vary=xt.VaryList([
+        'acbxv1.r5', 'acbxv1.l5', # <-- common elements
+        'acbyvs4.l5b1', 'acbrdv4.r5b1', 'acbcv5.l5b1', # <-- b1
+        'acbyvs4.l5b2', 'acbrdv4.r5b2', 'acbcv5.r5b2', # <-- b2
+        ],
+        step=1e-10, limits=[-1e-3, 1e-3]),
+    targets = [
+        xt.Target(y=0, at='ip5', line='lhcb1'),
+        xt.Target('py', xt.GreaterThan(9e-6), at='ip5', line='lhcb1'), # <-- inequality
+        xt.Target('py', xt.LessThan(  11e-6), at='ip5', line='lhcb1'), # <-- inequality
+        xt.Target(y=0, at='ip5', line='lhcb2'),
+        xt.Target(
+            lambda tw: tw.lhcb1['py', 'ip5'] + tw.lhcb2['py', 'ip5'], value=0), # <-- callable
+        xt.TargetSet(y=0, py=0, at=xt.END, line='lhcb1'),
+        xt.TargetSet(y=0, py=0, at=xt.END, line='lhcb2')
+    ])
+opt.target_status()
+```
+
+The resulting plot is the same as in the previous paragraph.
 
 </details>
 
