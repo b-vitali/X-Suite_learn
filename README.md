@@ -1,4 +1,4 @@
-<!-- <div style="width: 830px"> -->
+<div style="width: 830px">
 
 # X-Suite starter pack
 As described on [x-suite website](https://xsuite.readthedocs.io/en/latest/):  
@@ -55,7 +55,7 @@ Clearly the first important step is to understand how to describe the beamline w
 Here we will see how to define, inspect, manipulate, and save/load a beamline model using the `xtrack`.
 
 > [!NOTE]
-> The corresponding file is [line_example.py](line_example/line_example.py)
+> The corresponding file is [line.py](line/line.py)
 > 
 > This is based on : https://xsuite.readthedocs.io/en/latest/line.html
 
@@ -69,48 +69,113 @@ Here we will see how to define, inspect, manipulate, and save/load a beamline mo
 
 ### Defining a Line
 A line can be defined in several ways:
-- **Manually**: Create individual beamline elements (`Quadrupole`, `Drift`, `Bend`) and adding them to the line.
-- **Importing from MAD-X**: Use `xt.Line.from_madx_sequence()` to import a line from a MAD-X file.
+- **Manually**: Create individual beamline elements (`Quadrupole`, `Drift`, `Bend`) and adding them to the line.  
+This is what we do for this example
+
+```
+    pi = np.pi
+    lbend = 3
+    lquad = 0.3
+    elements = {
+        'mqf.1': xt.Quadrupole(length=lquad, k1=0.1),
+        'd1.1':  xt.Drift(length=1),
+        'mb1.1': xt.Bend(length=lbend, k0=pi / 2 / lbend, h=pi / 2 / lbend),
+        'd2.1':  xt.Drift(length=1),
+
+        'mqd.1': xt.Quadrupole(length=lquad, k1=-0.7),
+        'd3.1':  xt.Drift(length=1),
+        'mb2.1': xt.Bend(length=lbend, k0=pi / 2 / lbend, h=pi / 2 / lbend),
+        'd4.1':  xt.Drift(length=1),
+        ...
+    }
+```
+
+- **Importing from MAD-X**: Use `xt.Line.from_madx_sequence()` to import a line from a MAD-X file.  
+    For example importing the MAD-X file taken from [here](https://github.com/xsuite/xtrack/blob/main/test_data/psb_chicane/psb_fb_lhc.str):
+
+```
+    from cpymad.madx import Madx
+    mad = Madx()
+
+    # Here the code is passed to MAD-X so it's actually Fortran
+    mad.input('''
+    call, file = './madx/psb.seq';
+    call, file = './madx/psb_fb_lhc.str';
+
+    beam, particle=PROTON, pc=0.5708301551893517;
+    use, sequence=psb1;
+
+    select,flag=error,clear;
+    select,flag=error,pattern=bi1.bsw1l1.1*;
+    ealign, dx=-0.0057;
+
+    select,flag=error,clear;
+    select,flag=error,pattern=bi1.bsw1l1.2*;
+    select,flag=error,pattern=bi1.bsw1l1.3*;
+    select,flag=error,pattern=bi1.bsw1l1.4*;
+    ealign, dx=-0.0442;
+
+    twiss;
+    ''')
+
+    line = xt.Line.from_madx_sequence(
+    sequence=mad.sequence.psb1,
+    allow_thick=True,
+    enable_align_errors=True,
+    deferred_expressions=True,
+    )
+```
+
 - **Using a Sequence**: Define the line through element positions and properties.
 
-The line define manually in this example is shown here
 ```
-pi = np.pi
-lbend = 3
-lquad = 0.3
-elements = {
-    'mqf.1': xt.Quadrupole(length=lquad, k1=0.1),
-    'd1.1':  xt.Drift(length=1),
-    'mb1.1': xt.Bend(length=lbend, k0=pi / 2 / lbend, h=pi / 2 / lbend),
-    'd2.1':  xt.Drift(length=1),
+    elements = {
+    'quad': Multipole(length=0.3, knl=[0, +0.50]),
+    'bend': Multipole(length=0.5, knl=[np.pi / 12], hxl=[np.pi / 12]),
+    }
 
-    'mqd.1': xt.Quadrupole(length=lquad, k1=-0.7),
-    'd3.1':  xt.Drift(length=1),
-    'mb2.1': xt.Bend(length=lbend, k0=pi / 2 / lbend, h=pi / 2 / lbend),
-    'd4.1':  xt.Drift(length=1),
+    sequences = {
+        'arc': [Node(1.0, 'quad'), Node(4.0, 'bend', from_='quad')],
+    }
 
-    ...
-}
+    line = Line.from_sequence([
+            Node( 0.0, 'arc'),
+            Node(10.0, 'arc', name='section2'),
+            Node( 3.0, Multipole(knl=[0, 0, 0.1]), from_='section2', name='sext'),
+            Node( 3.0, 'quad', name='quad_5', from_='sext'),
+        ], length=20,
+        elements=elements, sequences=sequences,
+        auto_reorder=True, copy_elements=False,
+    )
 ```
-![Line example 1](line_example/line_example.png)
+
+![Line](line/line.png)
 
 ### Inspecting a Line
-`xtrack` provides methods to inspect line properties:
+`xtrack` provides methods to inspect line properties (see [here](https://github.com/xsuite/xtrack/blob/main/examples/toy_ring/004_inspect.py) for more):
 - **Element names**: Retrieve all the names of elements in the line (`line.element_names`).
 - **Element objects**: Retrieve the actual element objects (`line.elements`).
 - **Attributes extraction**: Extract specific attributes (e.g., length) across all elements (`line.attr['length']`).
 - **Table view**: Generate a detailed table with information about each element (`line.get_table()`).
 
-### Controlling Element Properties Using Variables
-Variables and expressions can be used to control properties of elements:
-- **Creating Variables**: Variables (`line.vars`) are created to control the integrated strengths (`k1l`) of quadrupoles.
-- **Associating Variables with Elements**: Variables are linked to elements using references (`line.element_refs`). This allows changes in variables to automatically propagate to the corresponding element properties.
-- **Global Variables**: Global variables (`line.vars['k1lf']` and `line.vars['k1ld']`) can be defined to control multiple quadrupoles simultaneously.
+```
+# Tuple with all element names
+line.element_names # is ('mqf.1', 'd1.1', 'mb1.1', 'd2.1', 'mqd.1', ...)
 
-### Creating and Using Expressions
-Expressions can be built using variables to create complex relationships:
-- Variables can be combined using mathematical operations.
-- Expressions update automatically when their dependencies change, maintaining consistency in the model.
+# Tuple with all element objects
+line.elements # is (Quadrupole(length=0.3, k1=0.1, ...), Drift(length=1), ...)
+
+# `line.attr[...]` can be used for efficient extraction of a given attribute for all elements
+line.attr['length'] # is (0.3, 1, 3, 1, 0.3, 1, 3, 1, 0.3, 1, 3, 1, 0.3, 1, 3, 1)
+line.attr['k1l'] # is ('0.03, 0.0, 0.0, 0.0, -0.21, 0.0, 0.0, 0.0, 0.03, ... )
+
+# The list of all attributes can be found in
+line.attr.keys() # is ('length', 'k1', 'k1l', 'k2', 'k2l', 'k3', 'k3l', 'k4', ... )
+
+# `line.get_table()` can be used to get a table with information about the line elements
+tab = line.get_table()
+tab.show()
+```
 
 ### Saving and Loading a Line
 `xtrack` allows saving a line to a JSON file or a dictionary:
@@ -140,7 +205,7 @@ print(loaded_dct['my_additional_info'])
 
 ### Adding elements
 Taking the previous *line*, we can add sextupoles right after the quadrupoles via `line.insert_element()`
-![Line example 1 sextupoles](line_example/line_example_sextupoles.png)
+![Line sextupoles](line/line_sextupoles.png)
 
 ### Slicing
 To improve the simulation it is quite common to *slice* the elements in smaller chunks
@@ -159,9 +224,122 @@ line.slice_thick_elements(
         xt.Strategy(slicing=None, name='mqd.1') # (7) Selection by name
     ])
 ```
-![Line example 1 sextupoles slice](line_example/line_example_sextupoles_slice.png)
+![Line sextupoles slice](line/line_sextupoles_slice.png)
 
 </details>
+
+## Controll a line
+Clearly it is not feaseble to chage values by hand and re-save a line.json.  
+There are few options to ease the control over the beamlines once created.
+
+> [!NOTE]
+> The corresponding file is [x.py](x/x.py)
+> 
+> This is based on : x
+
+> [!IMPORTANT]
+> This section is a bit rough to read, I know...  
+> It is very important so some patience is needed
+
+<details>
+<summary>Click here to see more!</summary>
+
+### Controlling elements using *variables*
+Variables and expressions can be used to control properties of elements:
+- **Creating Variables**: Variables (`line.vars`) are created to control the integrated strengths (`k1l`) of quadrupoles.
+- **Associating Variables with Elements**: Variables are linked to elements using references (`line.element_refs`). This allows changes in variables to automatically propagate to the corresponding element properties.
+- **Global Variables**: Global variables (`line.vars['k1lf']` and `line.vars['k1ld']`) can be defined to control multiple quadrupoles simultaneously.
+
+```
+# For each quadrupole we create a variable controlling its integrated strength.
+# Expressions can be associated to any beam element property, using the `element_refs`:
+line.vars['k1l.qf.1'] = 0
+line.element_refs['mqf.1'].k1 = line.vars['k1l.qf.1'] / lquad
+line.vars['k1l.qd.1'] = 0
+line.element_refs['mqd.1'].k1 = line.vars['k1l.qd.1'] / lquad
+line.vars['k1l.qf.2'] = 0
+line.element_refs['mqf.2'].k1 = line.vars['k1l.qf.2'] / lquad
+line.vars['k1l.qd.2'] = 0
+line.element_refs['mqd.2'].k1 = line.vars['k1l.qd.2'] / lquad
+
+# When a variable is changed, the corresponding element property is automatically
+# updated:
+line.vars['k1l.qf.1'] = 0.1
+line['mqf.1'].k1 # is 0.333, i.e. 0.1 / lquad
+
+# We can create a variable controlling the integrated strength of the two focusing quadrupoles
+line.vars['k1lf'] = 0.1
+line.vars['k1l.qf.1'] = line.vars['k1lf']
+line.vars['k1l.qf.2'] = line.vars['k1lf']
+# and a variable controlling the integrated strength of the two defocusing quadrupoles
+line.vars['k1ld'] = -0.7
+line.vars['k1l.qd.1'] = line.vars['k1ld']
+line.vars['k1l.qd.2'] = line.vars['k1ld']
+
+# Changes on the controlling variable are propagated to the controlled ones 
+# and also to the corresponding element properties
+line.vars['k1lf'] = 0.2
+line.vars['k1l.qf.1']._get_value() # is 0.2
+line.vars['k1l.qf.2']._get_value() # is 0.2
+line['mqf.1'].k1 # is 0.666, i.e. 0.2 / lquad
+line['mqf.2'].k1 # is 0.666, i.e. 0.2 / lquad
+
+# The `_info()` method of a variable provides information on the existing relations
+# between the variables. For example:
+line.vars['k1l.qf.1']._info()
+# prints:
+##  vars['k1l.qf.1']._get_value()
+#   vars['k1l.qf.1'] = 0.2
+#
+##  vars['k1l.qf.1']._expr
+#   vars['k1l.qf.1'] = vars['k1lf']
+#
+##  vars['k1l.qf.1']._expr._get_dependencies()
+#   vars['k1lf'] = 0.2
+#
+##  vars['k1l.qf.1']._find_dependant_targets()
+#   element_refs['mqf.1'].k1
+```
+
+### More complex controls with *expressions*
+Expressions can be built using variables to create complex relationships:
+- Variables can be combined using mathematical operations.
+- Expressions update automatically when their dependencies change, maintaining consistency in the model.
+
+```
+# Expressions can include multiple variables and mathematical operations. 
+# For example line.vars['a'] = 3 * line.functions.sqrt(line.vars['k1lf']) + 2 * line.vars['k1ld']
+
+# As seen above, line.vars['varname'] returns a reference object that
+# can be used to build further references, or to inspect its properties.
+# To get the current value of the variable, one needs to use `._get_value()`
+# For quick access to the current value of a variable, one can use the `line.varval` (or `line.vv`)
+line.varval['k1lf'] # is 0.2
+line.vv['k1lf']     # is 0.2
+
+# Note an important difference when using `line.vars` or `line.varval` in building
+# expressions. For example:
+line.vars['a'] = 3.
+line.vars['b'] = 2 * line.vars['a']
+
+# In this case the reference to the quantity `line.vars['a']` is stored in the expression, 
+# and the value of `line.vars['b']` is updated when `line.vars['a']` changes:
+line.vars['a'] = 4.
+line.vv['b'] # is 8.
+
+# On the contrary, when using `line.varval` or `line.vv` in building expressions,
+# the current value of the variable is stored in the expression:
+line.vv['a'] = 3.
+line.vv['b'] = 2 * line.vv['a']
+line.vv['b'] # is 6.
+line.vv['a'] = 4.
+line.vv['b'] # is still 6.
+
+# The `line.vars.get_table()` returns a table with the value of all the existing variables:
+line.vars.get_table()
+```
+</details>
+
 
 ## Build a ring
 
