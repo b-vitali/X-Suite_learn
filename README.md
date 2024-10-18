@@ -464,6 +464,9 @@ Let's see what happens when we rump up the energy of the particles
 > 
 > This is based on : https://github.com/xsuite/xtrack/blob/main/examples/acceleration/001_energy_ramp.py
 
+> [!WARNING]
+> Work in progress
+
 <details>
 <summary>Click here to see more!</summary>
 
@@ -538,6 +541,26 @@ mon = line.record_last_track
 ```
 
 ![acceleration](acceleration/acceleration.png)
+
+</details>
+
+
+## Match
+To obtain desired values in the twiss results we can adjust `knobs` attached to the `line`.  
+This is done via the numerical optimizer `match` method
+
+> [!NOTE]
+> The corresponding file is [match.py](match/match.py)
+> 
+> This is based on : https://xsuite.readthedocs.io/en/latest/match.html
+
+> [!WARNING]
+> Work in progress
+
+<details>
+<summary>Click here to see more!</summary>
+
+![match_base](match/match_basic.png)
 
 </details>
 
