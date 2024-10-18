@@ -249,12 +249,13 @@ Clearly it is not feaseble to chage values by hand and re-save a line.json.
 There are few options to ease the control over the beamlines once created.
 
 > [!NOTE]
-> The corresponding file is [x.py](x/x.py)
+> The corresponding file is [line_controls.py](line/line_controls.py)
 > 
-> This is based on : x
+> This is based on : https://xsuite.readthedocs.io/en/latest/line.html
 
 > [!IMPORTANT]
-> This section is a bit rough to read, I know...  
+> This section is a bit rough to read, I know...
+>  
 > It is very important so some patience is needed
 
 <details>
