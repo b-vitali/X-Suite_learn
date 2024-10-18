@@ -652,6 +652,125 @@ line.twiss_default # now is {}
 ```
 </details>
 
+## Match
+To obtain desired values in the twiss results we can adjust `knobs` attached to the `line`.  
+This is done via the numerical optimizer `match` method
+
+> [!NOTE]
+> The corresponding file is [match.py](match/match.py)
+> 
+> This is based on : https://xsuite.readthedocs.io/en/latest/match.html
+>
+> We will use a pre-defined beamline: [match_line.json](match/match_line.json) taken from [here](https://github.com/xsuite/xtrack/blob/main/test_data/hllhc15_thick/lhc_thick_with_knobs.json)
+
+> [!WARNING]
+> Work in progress
+
+<details>
+<summary>Click here to see more!</summary>
+
+### Basic usage
+
+To use the `xtrack.Line.match()` method a set of `Vary` and `Target` objects are defined.  
+The first are the *knobs* that will be changed to match the defined target.  
+The following code shows how to match the tunes and chromaticities of a ring.
+
+```
+# Match tunes and chromaticities to assigned values
+opt = line.match(
+    # Matching method used; in this case, a 4-dimensional optimization
+    method='4d',  
+    vary=[
+        # Quadrupole strengths to be varied with steps 1e-8
+        xt.VaryList(['kqtf.b1', 'kqtd.b1'], step=1e-8, tag='quad'),
+        # Sextupole strengths to be varied with steps 1e-4 within [-0.1, 0.1] 
+        xt.VaryList(['ksf.b1', 'ksd.b1'], step=1e-4, limits=[-0.1, 0.1], tag='sext'),  
+    ],
+    targets=[
+        # Target tunes with a tolerance of 1e-6
+        xt.TargetSet(qx=62.315, qy=60.325, tol=1e-6, tag='tune'), 
+        # Target chromaticities with a tolerance of 0.01 
+        xt.TargetSet(dqx=10.0, dqy=12.0, tol=0.01, tag='chrom'),  
+    ])
+
+# Get knobs values before optimization
+knobs_before_match = opt.get_knob_values(iteration=0)
+# contains: {'kqtf.b1': 0, 'kqtd.b1': 0, 'ksf.b1': 0, 'ksd.b1': 0}
+
+# Get knobs values after optimization
+knobs_after_match = opt.get_knob_values()
+# contains: {'kqtf.b1': 4.27163e-05,  'kqtd.b1': -4.27199e-05,
+#            'ksf.b1': 0.0118965, 'ksd.b1': -0.0232137}
+```
+
+![match_base](match/match_basic.png)
+
+### Match in a specific location
+The match can be performed on a specific portion/position of the beamline.  
+This is done providing `xt.START` and `xt.EDN`
+
+We want to obtain the following conditions in different sections:
+- mq.30l8.b1    : betx=1, bety=1, y=0, py=0
+- mb.b28l8.b1   : betx=1, bety=1, y=3e-3, py=0
+- mq.23l8.b1    : betx=1, bety=1, y=0, py=0
+
+We use one of these as 'start' and the other two as 'target'.  
+The result in this case is the same.
+
+```
+opt = line.match(
+    start='mq.30l8.b1', end='mq.23l8.b1',
+    init_at=xt.START, betx=1, bety=1, y=0, py=0, # <-- conditions at start
+    vary=xt.VaryList(['acbv30.l8b1', 'acbv28.l8b1', 'acbv26.l8b1', 'acbv24.l8b1'],
+                    step=1e-10, limits=[-1e-3, 1e-3]),
+    targets = [
+        xt.TargetSet(y=3e-3, py=0, at='mb.b28l8.b1'),
+        xt.TargetSet(y=0, py=0, at=xt.END)
+    ])
+
+opt = line.match(
+    start='mq.30l8.b1', end='mq.23l8.b1',
+    init_at=xt.END, betx=1, bety=1, y=0, py=0, # <-- conditions at end
+    vary=xt.VaryList(['acbv30.l8b1', 'acbv28.l8b1', 'acbv26.l8b1', 'acbv24.l8b1'],
+                    step=1e-10, limits=[-1e-3, 1e-3]),
+    targets = [
+        xt.TargetSet(y=3e-3, py=0, at='mb.b28l8.b1'),
+        xt.TargetSet(y=0, py=0, at=xt.START)
+    ])
+
+opt = line.match(
+    start='mq.30l8.b1', end='mq.23l8.b1',
+    init_at='mb.b28l8.b1', betx=1, bety=1, y=3e-3, py=0, # <-- conditions inside the range
+    vary=xt.VaryList(['acbv30.l8b1', 'acbv28.l8b1', 'acbv26.l8b1', 'acbv24.l8b1'],
+                    step=1e-10, limits=[-1e-3, 1e-3]),
+    targets = [
+        xt.TargetSet(y=0, py=0, at=xt.START),
+        xt.TargetSet(y=0, py=0, at=xt.END)
+    ])
+```
+
+![match_atposition](match/match_atposition.png)
+
+### Match with twiss
+We can define the boundary or the target also with an existing `line.twiss()`.  
+The result of this example is the same as the previous pragraph.
+
+```
+tw0 = line.twiss(method='4d')
+opt = line.match(
+    start='mq.30l8.b1', end='mq.23l8.b1',
+    init=tw0, init_at=xt.END, # <-- Boundary conditions from table
+    vary=xt.VaryList(['acbv30.l8b1', 'acbv28.l8b1', 'acbv26.l8b1', 'acbv24.l8b1'],
+                    step=1e-10, limits=[-1e-3, 1e-3]),
+    targets = [
+        xt.TargetSet(y=3e-3, py=0, at='mb.b28l8.b1'),
+        xt.TargetSet(['y', 'py'], value=tw0, at=xt.START) # <-- Target from table
+    ])
+```
+
+</details>
+
+
 ## Acceleration
 Let's see what happens when we rump up the energy of the particles
 
@@ -742,29 +861,6 @@ mon = line.record_last_track
 ![acceleration](acceleration/acceleration.png)
 
 </details>
-
-
-## Match
-To obtain desired values in the twiss results we can adjust `knobs` attached to the `line`.  
-This is done via the numerical optimizer `match` method
-
-> [!NOTE]
-> The corresponding file is [match.py](match/match.py)
-> 
-> This is based on : https://xsuite.readthedocs.io/en/latest/match.html
->
-> We will use a pre-defined beamline: [match_line.json](match/match_line.json) taken from [here](https://github.com/xsuite/xtrack/blob/main/test_data/hllhc15_thick/lhc_thick_with_knobs.json)
-
-> [!WARNING]
-> Work in progress
-
-<details>
-<summary>Click here to see more!</summary>
-
-![match_base](match/match_basic.png)
-
-</details>
-
 
 ## ...Upcoming
 
