@@ -256,12 +256,12 @@ Now we can finally see our results!
 Xtrack provides a *twiss method* that can be used to obtain the lattice functions and other quantities.  
 We will see how to obtain and tune chromaticities, slip factor, ...
 
-We will use a pre-defined beamline: [twiss_line.json](twiss/twiss_line.json) taken from [here](https://github.com/xsuite/xtrack/blob/main/test_data/hllhc15_noerrors_nobb/line_and_particle.json)
-
 > [!NOTE]
 > The corresponding file is [twiss.py](twiss.py)
 > 
 > This is based on : https://xsuite.readthedocs.io/en/latest/twiss.html
+>
+> We will use a pre-defined beamline: [twiss_line.json](twiss/twiss_line.json) taken from [here](https://github.com/xsuite/xtrack/blob/main/test_data/hllhc15_noerrors_nobb/line_and_particle.json)
 
 > [!TIP]
 > Remember to use `tw = line.twiss(method='4d')` if there is no RF in place!
@@ -463,6 +463,9 @@ Let's see what happens when we rump up the energy of the particles
 > The corresponding file is [acceleration.py](acceleration/acceleration.py)
 > 
 > This is based on : https://github.com/xsuite/xtrack/blob/main/examples/acceleration/001_energy_ramp.py
+>
+> We will use a pre-defined beamline: [acceleration_line.json](acceleration/acceleration_line.json) taken from [here](https://github.com/xsuite/xtrack/blob/main/test_data/psb_injection/line_and_particle.json)
+
 
 > [!WARNING]
 > Work in progress
@@ -553,6 +556,8 @@ This is done via the numerical optimizer `match` method
 > The corresponding file is [match.py](match/match.py)
 > 
 > This is based on : https://xsuite.readthedocs.io/en/latest/match.html
+>
+> We will use a pre-defined beamline: [match_line.json](match/match_line.json) taken from [here](https://github.com/xsuite/xtrack/blob/main/test_data/hllhc15_thick/lhc_thick_with_knobs.json)
 
 > [!WARNING]
 > Work in progress
