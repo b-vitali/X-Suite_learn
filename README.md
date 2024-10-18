@@ -14,7 +14,8 @@ When possible, I will point to the link of the original example/repo.
 - [Control a line](#control-a-line)
 - [Build a ring](#build-a-ring)
 - [Twiss](#twiss)
-- [Acceleration](#Acceleration)
+- [Match](#match)
+- [Acceleration](#acceleration)
 
 ## Install X-Suite
 X-Suite can be easily installed via `pip` but in case you prefer I have a dockerfile you can use.
