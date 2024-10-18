@@ -1,4 +1,4 @@
-<!-- vscode-only-start --><div style="width: 830px"><!-- vscode-only-end -->
+<!-- <div style="width: 30px"> -->
 
 # X-Suite starter pack
 As described on [x-suite website](https://xsuite.readthedocs.io/en/latest/):  
@@ -362,7 +362,7 @@ tw3 = line.twiss(start='ip5', end='mb.c24r5.b1', init_at='mb.c14r5.b1',
 tw4 = line.twiss(start='ip5', end='mb.c24r5.b1', init_at='mb.c14r5.b1',
                  init=tw_p)
 
-# More explicitly, a `TwissInit` object can be extracted from the twiss table and used as initial conditions
+# `TwissInit` object can be extracted from a twiss table and used as initial conditions
 tw_init = tw_p.get_twiss_init('mb.c14r5.b1',)
 tw5 = line.twiss(start='ip5', end='mb.c24r5.b1', init=tw_init)
 ```
@@ -371,6 +371,30 @@ The results for `tw5` in this case are the one shown here
 
 ![twiss_initialconditions](twiss/twiss_initialconditions.png)
 
+### Default behaviour
+
+It is possible to define new 'default' behaviour for `line.twiss()`
+
+For example we might want to define `4d` the default `method`
+
+```
+# Inspect twiss defaults
+line.twiss_default # is {}
+
+# Set some twiss defaults
+line.twiss_default['method'] = '4d'
+line.twiss_default['reverse'] = True
+
+# Twiss (defaults redefined)
+tw_b = line.twiss()
+tw_b.method # is '4d'
+tw_b.reference_frame # is 'reverse'
+line.twiss_default # now is {'method': '4d', 'reverse': True}
+
+# Reset twiss defaults
+line.twiss_default.clear()
+line.twiss_default # now is {}
+```
 </details>
 
 ## Acceleration

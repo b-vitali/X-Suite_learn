@@ -11,8 +11,6 @@ Particles normalized coordinates
 
 Reverse reference frame
 
-Twiss defaults
-
 Twiss with synchrotron radiation
 '''
 
