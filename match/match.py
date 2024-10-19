@@ -4,18 +4,6 @@ import xtrack as xt
 import matplotlib.pyplot as plt
 import numpy as np
 
-'''
-Match involving multiple lines
-Callables and inequalities in targets
-'''
-'''
-Matching on results of arbitrary actions
-Interactive match
-Create new knobs by matching
-Targets from variables and from line elements
-Match and twiss with symmetry constraints on one boundary
-'''
-
 def matchplot(tw_before, tw_after, center):
     # Inspect fundamental parameters before tuning
     qx_before = tw_before.qx  # Horizontal tune before

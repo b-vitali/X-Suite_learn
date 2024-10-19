@@ -767,6 +767,50 @@ opt = line.match(
         xt.TargetSet(['y', 'py'], value=tw0, at=xt.START) # <-- Target from table
     ])
 ```
+
+### Additional options
+Some additional options are available (to find out more see [here](https://xsuite.readthedocs.io/en/latest/match.html#)):
+
+-   Matching on results of arbitrary actions
+    Instead of using `twiss` match can be used on a user defined *action*, which is a python class based on `xtrack.Action` providing with `run` some quantities that can be used as targets.
+```
+class ActionMeasAmplDet(xt.Action):
+
+    def __init__(self, line, num_turns, nemitt_x, nemitt_y):
+
+        self.line = line
+        self.num_turns = num_turns
+        self.nemitt_x = nemitt_x
+        self.nemitt_y = nemitt_y
+
+    def run(self):
+
+        det_coefficients = self.line.get_amplitude_detuning_coefficients(
+                                nemitt_x=self.nemitt_x, nemitt_y=self.nemitt_y,
+                                num_turns=self.num_turns)
+
+        out = {'d_xx': det_coefficients['det_xx'],
+               'd_yy': det_coefficients['det_yy']}
+
+        return out
+
+action = ActionMeasAmplDet(line=line, nemitt_x=2.5e-6, nemitt_y=2.5e-6,
+                           num_turns=128)
+
+opt = line.match(vary=xt.VaryList(['kof.a23b1', 'kod.a23b1'], step=1.),
+                 targets=[action.target('d_xx', 1000., tol=0.1),
+                          action.target('d_yy', 2000., tol=0.1)])
+
+opt.target_status()
+```
+-   Interactive match  
+    With `solve=False`, we get a `xdeps.Optimize` via which we can control the match enabling/disabling knobs and targets, changing target values and tolerances, controlling the number of optimization steps, tagging and reloading specific optimization steps
+-   Create new knobs by matching  
+    The xtrack.Line.match_knob() method allows generating new knobs based on the result of an optimization
+-   Targets from variables and from line elements
+-   Match and twiss with symmetry constraints on one boundary  
+    Useful for example when matching *half* a FODO
+
 </details>
 
 ## Match multiple lines
